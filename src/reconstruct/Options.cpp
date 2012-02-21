@@ -60,7 +60,7 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
 		        ("lft", value<float>(&m_lineFusionThreshold)->default_value(0.01), "(Line Fusion Threshold) Threshold for fusing line segments while tesselating.")
 		        ("generateTextures", "Generate textures during finalization.")
 		        ("texelSize", value<float>(&m_texelSize)->default_value(1), "Texel size that determines texture resolution.")
-		        ("colorRegions", "Color detected regions with color gradient.")
+		        ("colorRegions", "Color detected regions with color gradient. Implies --optimizePlanes.")
 		        ("depth", value<int>(&m_depth)->default_value(100), "Maximum recursion depth for region growing.")
 		        ("recalcNormals,r", "Always estimate normals, even if given in .ply file.")
 		        ("threads", value<int>(&m_numThreads)->default_value( omp_get_num_procs() ), "Number of threads")
@@ -219,7 +219,8 @@ bool Options::saveOriginalData() const
 bool Options::optimizePlanes() const
 {
 	return m_variables.count("optimizePlanes")
-        || m_variables.count("retesselate");
+        || m_variables.count("retesselate")
+        || m_variables.count("colorRegions");
 }
 
 bool Options::extrude() const
