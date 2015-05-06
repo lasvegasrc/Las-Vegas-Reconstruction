@@ -102,14 +102,14 @@ endif(PCL_FOUND)
 # Compile object files for static and dynamic library
 #####################################################################################
 
-add_library( lvrcore OBJECT ${LVR_SOURCES} ${LVR_LIB_MOC_SRC})
+add_library( lvrcore ${LVR_SOURCES} ${LVR_LIB_MOC_SRC})
 
 #####################################################################################
 # Build static library
 #####################################################################################
 
 message(STATUS "Building static library")
-add_library(lvr_static OBJECT ${LVR_SOURCES} ${LVR_LIB_MOC_SRC} )
+add_library(lvr_static  ${LVR_SOURCES} ${LVR_LIB_MOC_SRC} )
 set_target_properties(lvr_static PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 target_link_libraries(lvr_static ${LVR_LIB_DEPENDENCIES})
 
