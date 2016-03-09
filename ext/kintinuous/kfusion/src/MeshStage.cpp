@@ -87,8 +87,9 @@ void MeshStage::step()
 						uint in2 = current_neighbor->m_intersections[neighbor_vertex_table[edge_index][i]];
 						HMesh::VertexPtr old_vert = last_mesh_queue_.front()->getVertices()[inter];
 						auto vert_it = verts_map.find(old_vert);
-						if(vert_it == verts_map.end() && in2 != cFastBox::INVALID_INDEX && in2 != 0 && in2 != inter && current_neighbor->m_fusionNeighborBox)
+						if(vert_it == verts_map.end() && in2 != cFastBox::INVALID_INDEX && in2 != 0 && in2 != inter && current_neighbor->m_fusionNeighborBox && in2 < meshPtr->getVertices().size())
 						{
+
 							inter2 = in2;
 							HMesh::VertexPtr act_vert = meshPtr->getVertices()[inter2];
 							verts_map.insert(pair<HMesh::VertexPtr, HMesh::VertexPtr>(old_vert, act_vert));
