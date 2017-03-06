@@ -145,7 +145,7 @@ size_t writeAscii(ModelPtr model, std::ofstream& out)
     {
         out << arr[a * 3] << " " << arr[a * 3 + 1] << " " << arr[a * 3 + 2];
 
-        if(n_colors)
+        if(n_colors && !(options->noColor()))
         {
             out << " " << (int)colors[a * 3] << " " << (int)colors[a * 3 + 1] << " " << (int)colors[a * 3 + 2];
         }
@@ -164,7 +164,7 @@ size_t writePly(ModelPtr model, std::fstream& out)
 
     ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
 
-    if(n_colors)
+    if(n_colors && !(options->noColor()))
     {
         if(n_colors != n_ip)
         {
@@ -468,7 +468,7 @@ void transformFromOptions(ModelPtr model, int modulo)
                 break;
             }
             
-            if(n_colors)
+            if(n_colors && !(options->noColor()))
             {
                 newColorsArr[cntr * 3]     = colors[i * 3];
                 newColorsArr[cntr * 3 + 1] = colors[i * 3 + 1];
@@ -483,7 +483,7 @@ void transformFromOptions(ModelPtr model, int modulo)
     // it might be 1 less than the size
     model->m_pointCloud->setPointArray(points, cntr);
 
-    if(n_colors)
+    if(n_colors && !(options->noColor()))
     {
         model->m_pointCloud->setPointColorArray(newColorsArr, cntr);
     }
@@ -620,7 +620,7 @@ void processSingleFile(boost::filesystem::path& inFile)
                 // check if we have color information
                 size_t n_colors;
                 ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
-                if(n_colors)
+                if(n_colors && !(options->noColor()))
                 {
                     writePlyHeader(out, points_written, true);
                 }
@@ -799,7 +799,7 @@ void processSingleFile(boost::filesystem::path& inFile)
             size_t n_ip;
             ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
             floatArr point  = model->m_pointCloud->getPointArray(n_ip);
-            if(n_colors)
+            if(n_colors && !(options->noColor()))
             {
                 writePlyHeader(out, n_ip, true);
             }
