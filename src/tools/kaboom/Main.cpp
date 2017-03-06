@@ -468,7 +468,7 @@ void transformFromOptions(ModelPtr model, int modulo)
                 break;
             }
             
-            if(n_colors && !(options->noColor()))
+            if(n_colors) 
             {
                 newColorsArr[cntr * 3]     = colors[i * 3];
                 newColorsArr[cntr * 3 + 1] = colors[i * 3 + 1];
@@ -483,7 +483,7 @@ void transformFromOptions(ModelPtr model, int modulo)
     // it might be 1 less than the size
     model->m_pointCloud->setPointArray(points, cntr);
 
-    if(n_colors && !(options->noColor()))
+    if(n_colors)
     {
         model->m_pointCloud->setPointColorArray(newColorsArr, cntr);
     }
