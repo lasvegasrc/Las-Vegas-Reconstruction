@@ -717,9 +717,46 @@ void processSingleFile(boost::filesystem::path& inFile)
             out.close();
             cout << timestamp << "Wrote " << points_written << " points to file " << name << endl;
         }
-        else if(options->getOutputFormat() == "SLAM")
+        else if(options->getOutputFormat() == "ASCII")
         {
-            std::cerr << "I am sorry! This is not implemented yet" << std::endl;
+            // Infer format from file extension, convert and write out
+            char name[1024];
+            char frames[1024];
+            char pose[1024];
+            char framesOut[1024];
+            char poseOut[1024];
+
+            std::cout << timestamp << "ASCII" << std::endl;
+
+            sprintf(frames, "%s/%s.frames", inFile.parent_path().c_str(), inFile.stem().c_str());
+            sprintf(pose, "%s/%s.pose", inFile.parent_path().c_str(), inFile.stem().c_str());
+            sprintf(framesOut, "%s/%s.frames", options->getOutputDir().c_str(), inFile.stem().c_str());
+            sprintf(poseOut, "%s/%s.pose", options->getOutputDir().c_str(), inFile.stem().c_str());
+            sprintf(name, "%s/%s.3d", options->getOutputDir().c_str(), inFile.stem().c_str());
+
+            boost::filesystem::path framesPath(frames);
+            boost::filesystem::path posePath(pose);
+
+            // Transform the frames
+            if(boost::filesystem::exists(framesPath))
+            {
+                std::cout << timestamp << "Transforming frame: " << framesPath << std::endl;
+                Eigen::Matrix4d transformed = transformFrames(getTransformationFromFrames(framesPath));
+                writeFrames(transformed, framesOut);
+            }
+
+            // Transform the pose file
+            if(boost::filesystem::exists(posePath))
+            {
+            }
+
+            ofstream out(name);
+            transformFromOptions(model, getReductionFactor(model));
+            size_t points_written = writeAscii(model, out);
+
+            out.close();
+            cout << timestamp << "Wrote " << points_written << " points to file " << name << endl;
+
         }
         else if(options->getOutputFormat() == "PLY")
         {
@@ -749,17 +786,41 @@ void processSingleFile(boost::filesystem::path& inFile)
                 writeFrames(transformed, framesOut);
             }
 
-            // Transform the pose file
-            if(boost::filesystem::exists(posePath))
-            {
-            }
 
-            ofstream out(name);
             //transformFromOptions(model, asciiReductionFactor(inFile));
             transformFromOptions(model, getReductionFactor(model));
-            size_t points_written = writeModel(model, saveName);
+            std::ofstream out;
+
+            // write the header -> open in text_mode 
+            out.open(saveName.c_str(), std::ofstream::out | std::ofstream::trunc);
+
+            // check if we have color information
+            size_t n_colors;
+            size_t n_ip;
+            ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
+            floatArr point  = model->m_pointCloud->getPointArray(n_ip);
+            if(n_colors)
+            {
+                writePlyHeader(out, n_ip, true);
+            }
+            else
+            {
+                writePlyHeader(out, n_ip, false);
+            }
 
             out.close();
+
+            std::fstream binOut;
+            //size_t points_written = writeModel(model, saveName);
+
+            //binOut.open(options->getOutputFile(), std::ofstream::out | std::ofstream::app | std::ofstream::binary);
+            
+            binOut.open(saveName.c_str(), std::fstream::in | std::fstream::out | std::fstream::app | std::fstream::binary);
+
+            size_t points_written = writePly(model, binOut);
+            
+            binOut.close();
+
             cout << timestamp << "Wrote " << points_written << " points to file " << name << endl;
 
         }
