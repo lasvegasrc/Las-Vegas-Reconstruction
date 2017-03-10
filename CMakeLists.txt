@@ -335,7 +335,7 @@ if(QT4_FOUND)
 
   # Try to find libQGLViewer
   find_library(QGLVIEWER_LIBRARY_RELEASE
-      NAMES qglviewer-qt4 qglviewer QGLViewer QGLViewer2 libQGLViewer-qt4
+      NAMES qglviewer-qt4 qglviewer QGLViewer QGLViewer2 libQGLViewer-qt4 QGLViewer-qt4 
       PATHS /usr/lib /usr/local/lib ENV QGLVIEWERROOT ENV LD_LIBRARY_PATH ENV LIBRARY_PATH
       PATH_SUFFIXES QGLViewer QGLViewer/release)
   if(QGLVIEWER_LIBRARY_RELEASE)

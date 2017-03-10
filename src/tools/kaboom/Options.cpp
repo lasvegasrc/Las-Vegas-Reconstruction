@@ -42,6 +42,7 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
 		("outputDir", value<string>()->default_value("./"), "The target directory for converted data.")
 		("outputFormat", value<string>()->default_value(""), "Specify the output format. Possible values are ASCII, PLY, DAT, LAS. If left empty, the format is deduced from the extension of the input files.")
 	    ("filter", value<bool>()->default_value(false), "Filter input data.")
+	    ("noColor", value<bool>()->default_value(false), "Export without Colors.")
 	    ("k", value<int>()->default_value(1), "k neighborhood for filtering.")
 	    ("sigma", value<float>()->default_value(1.0), "Deviation for outlier filter.")
 	    ("targetSize", value<int>()->default_value(0), "Target size (reduction) for the input scans.")
@@ -101,6 +102,11 @@ string 	Options::getOutputFormat() const
 bool	Options::filter() const
 {
 	return m_variables["filter"].as<bool>();
+}
+
+bool    Options::noColor() const
+{
+    return m_variables["noColor"].as<bool>();
 }
 
 bool    Options::transformBefore() const
