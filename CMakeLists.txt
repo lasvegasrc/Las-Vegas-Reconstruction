@@ -35,7 +35,26 @@ endif(MSVC)
 ####
 ## Searching for CUDA
 ##############################
-find_package( CUDA )
+find_package( CUDA 8.0 REQUIRED )
+
+set(HAVE_CUDA 1)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--ftz=true;--prec-div=false;--prec-sqrt=false")
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-arch=sm_50")
+
+include_directories(${CUDA_INCLUDE_DIRS})
+
+set(NORMALS_CUDA_SRCS
+        include/lvr/reconstruction/cuda/calcNormalsCuda.h
+        src/liblvr/reconstruction/cuda/calcNormalsCuda.cu
+)
+
+#add library to link by calcNormalsCuda.h usage
+cuda_add_library(lvr_cuda_normals_static ${NORMALS_CUDA_SRCS})
+
+target_link_libraries(lvr_cuda_normals_static
+        ${CUDA_LIBRARIES}
+        ${CUDA_CUDA_LIBRARY}
+)
 
 
 ####
@@ -375,6 +394,7 @@ add_subdirectory(src/tools/registration)
 add_subdirectory(src/tools/normals)
 add_subdirectory(src/tools/kaboom)
 add_subdirectory(src/tools/image_normals)
+add_subdirectory(src/tools/cuda_normals)
 
 if(MPI_FOUND)
   add_subdirectory(src/tools/mpi)
