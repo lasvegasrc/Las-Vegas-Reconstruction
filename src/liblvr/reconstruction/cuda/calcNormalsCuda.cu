@@ -26,6 +26,8 @@
 
 /// Define Kernels
 
+namespace lvr {
+
 __global__ void FlipNormalsKernel(const PointArray D_V, PointArray D_Result_Normals, float x, float y, float z);
 
 __global__ void KNNKernel(const PointArray D_V, const PointArray D_kd_tree, PointArray D_Result_Normals, int k, int method);
@@ -556,7 +558,7 @@ CalcNormalsCuda::CalcNormalsCuda(PointArray& points)
 {
 	this->init();
 	
-	CalcNormalsCuda::getCudaInformation();
+	this->getCudaInformation();
 	
 	this->V.dim = points.dim;
 	
@@ -570,6 +572,25 @@ CalcNormalsCuda::CalcNormalsCuda(PointArray& points)
 		this->V.elements[i] = points.elements[i];
 		
 	}
+	
+	this->initKdTree();
+	
+}
+
+CalcNormalsCuda::CalcNormalsCuda(floatArr& points, size_t num_points, size_t dim){
+	
+	this->init();
+	
+	this->getCudaInformation();
+	
+	this->V.dim = static_cast<int>(dim);
+	
+	this->V.width = static_cast<int>(num_points);
+	
+	mallocPointArray(V);
+	
+	this->V.elements = points.get();
+	
 	
 	this->initKdTree();
 	
@@ -609,13 +630,21 @@ void CalcNormalsCuda::getNormals(PointArray& output_normals)
 	
 	output_normals.dim = this->Result_Normals.dim;
 	output_normals.width = this->Result_Normals.width;
-	output_normals.elements = (float*)malloc( this->Result_Normals.dim * this->Result_Normals.width * sizeof(float) ) ;
+	//output_normals.elements = (float*)malloc( this->Result_Normals.dim * this->Result_Normals.width * sizeof(float) ) ;
 	
 	for(int i = 0; i< this->Result_Normals.dim * this->Result_Normals.width; i++)
 	{	
 		output_normals.elements[i] = this->Result_Normals.elements[i];
 	}
 	
+}
+
+void CalcNormalsCuda::getNormals(floatArr output_normals)
+{
+	for(int i = 0; i< this->Result_Normals.dim * this->Result_Normals.width; i++)
+	{	
+		output_normals[i] = this->Result_Normals.elements[i];
+	}
 }
 
 void CalcNormalsCuda::mallocPointArray(PointArray& m) {
@@ -1054,4 +1083,4 @@ CalcNormalsCuda::~CalcNormalsCuda() {
 	}
 }
 
-
+} /* namespace lvr */

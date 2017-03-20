@@ -39,6 +39,7 @@
 #include <boost/shared_array.hpp>
 
 
+
 static void HandleError( cudaError_t err,
                          const char *file,
                          int line ) {
@@ -50,6 +51,7 @@ static void HandleError( cudaError_t err,
 }
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 
+namespace lvr {
 
 struct PointArray {
     int width;
@@ -60,6 +62,7 @@ struct PointArray {
 //~ Device Functions
 //~ __global__ void KNNKernel(const PointArray D_V, const PointArray D_kd_tree, PointArray D_Result_Normals, int k=50);
 
+typedef boost::shared_array<float> floatArr;
 
 class CalcNormalsCuda {
 
@@ -70,6 +73,8 @@ public:
      * @param points Input Pointcloud for kd-tree construction
 	 */
 	CalcNormalsCuda(PointArray& points);
+	
+	CalcNormalsCuda(floatArr& points, size_t num_points, size_t dim = 3);
 	
 	~CalcNormalsCuda();
 	
@@ -85,6 +90,8 @@ public:
 	 * @param output_normals 	PointArray as return value
 	 */
 	void getNormals(PointArray& output_normals);
+	
+	void getNormals(floatArr output_normals);
 	
 	/**
 	 * @brief Set the number of k nearest neighbors
@@ -176,5 +183,7 @@ private:
 	unsigned long long m_device_global_memory;
 		
 };
+
+}
 
 #endif // !__CALCNORMALSCUDA_H

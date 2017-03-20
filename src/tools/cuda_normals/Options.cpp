@@ -32,6 +32,12 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
 	m_descr.add_options()
 	("help", "Produce help message")
     ("inputFile", value< vector<string> >(), "Input file name. ")
+    ("ransac", "Set this flag for RANSAC based normal estimation.")
+    ("pca", "Set this flag for RANSAC based normal estimation.")
+    ("kd", value<int>(&m_kd)->default_value(50), "Number of normals used for distance function evaluation")
+    ("flipx", value<float>(&m_flipx)->default_value(100000.0), "Flippoint x" )
+    ("flipy", value<float>(&m_flipy)->default_value(100000.0), "Flippoint y" )
+    ("flipz", value<float>(&m_flipz)->default_value(100000.0), "Flippoint z" )
     ;
 
     m_pdescr.add("inputFile", -1);

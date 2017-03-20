@@ -58,6 +58,36 @@ public:
 	{
         return (m_variables["inputFile"].as< vector<string> >())[0];
 	}
+	
+	bool    useRansac() const
+	{
+		return (m_variables.count("ransac"));
+	}
+	
+	bool	usePCA() const
+	{
+		return (m_variables.count("pca"));
+	}
+	
+	float 	flipx() const
+	{
+		return m_variables["flipx"].as<float>();
+	}
+	
+	float 	flipy() const
+	{
+		return m_variables["flipy"].as<float>();
+	}
+	
+	float 	flipz() const
+	{
+		return m_variables["flipz"].as<float>();
+	}
+	
+	int     kd() const
+	{
+        return m_variables["kd"].as<int>();
+	}
 
 private:
 
@@ -70,25 +100,27 @@ private:
 	/// The internally used positional option desription
 	positional_options_description m_pdescr;
 
-    int         m_minH;
-    int         m_maxH;
-    int         m_minV;
-    int         m_maxV;
-    int         m_width;
-    int         m_height;
-    int         m_windowWidth;
-    int         m_windowHeight;
-    float       m_minZ;
-    float       m_maxZ;
-    float       m_minZimg;
-    float       m_maxZimg;
-    string      m_imageOut;
-    string      m_system;
+    float         m_flipx;
+    float		  m_flipy;
+    float 		  m_flipz;
+    int			  m_kd;
 };
 
 inline ostream& operator<<(ostream& os, const Options& o)
 {
     os << "##### Cuda normal estimation settings #####" << endl;
+    if(o.useRansac()){
+		os << "Normal Calculation with RANSAC" << endl;
+	}else if(o.usePCA()){
+		os << "Normal Calculation with PCA" << endl;
+	}else{
+		os << "Normal Calculation with PCA" << endl;
+	}
+	os << "Neighbors for normal estimation: "<< o.kd() << endl;
+    os << "Flippoint x: " << o.flipx() << endl;
+    os << "Flippoint y: " << o.flipy() << endl;
+    os << "Flippoint z: " << o.flipz() << endl;
+    
     return os;
 }
 
