@@ -59,6 +59,11 @@ public:
         return (m_variables["inputFile"].as< vector<string> >())[0];
 	}
 
+    string  outputFile() const
+    {
+        return (m_variables["outputFile"].as<string>());
+    }
+
 
     string  imageFile() const
 	{
@@ -129,7 +134,7 @@ public:
 
     bool    optimize() const
     {
-        return m_variables.count("optimize");
+        return m_variables.count("optimizeRatio");
     }
 
     string    coordinateSystem() const
@@ -162,6 +167,7 @@ private:
     float       m_maxZimg;
     string      m_imageOut;
     string      m_system;
+    string      m_outputFile;
 };
 
 inline ostream& operator<<(ostream& os, const Options& o)
@@ -174,6 +180,7 @@ inline ostream& operator<<(ostream& os, const Options& o)
     os << "Z range (img)\t\t\t: " << o.minZimg() << " to " << o.maxZimg() << endl;
     os << "Optimize aspect\t\t\t: " << o.optimize() << endl;
     os << "Coordinate system\t\t: " << o.coordinateSystem() << endl;
+    os << "Output file\t\t\t: " << o.coordinateSystem() << endl;
     return os;
 }
 

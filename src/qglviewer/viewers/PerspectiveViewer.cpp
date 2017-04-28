@@ -144,7 +144,8 @@ void PerspectiveViewer::createBackgroundDisplayList()
 	glVertex2f(1.0, 1.0);
 
 	//blue color
-	glColor3f(0.725, 0.827, 0.933);
+    //glColor3f(0.725, 0.827, 0.933);
+    glColor3f(0.0, 0.0, 0.0);
 	glVertex2f(1.0, -1.0);
 	glVertex2f(-1.0, -1.0);
 	glEnd();

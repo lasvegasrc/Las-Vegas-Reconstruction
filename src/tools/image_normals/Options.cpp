@@ -31,7 +31,8 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
 
 	m_descr.add_options()
 	("help", "Produce help message")
-    ("inputFile", value< vector<string> >(), "Input file name. ")
+    ("inputFile",       value< vector<string> >(), "Input file name. If input is an directory the programm will check for scans in SLAM6D uos format.")
+    ("outputFile,o",    value<string>(&m_outputFile)->default_value("normals.ply"), "Output file name.")
     ("minH",            value<int>(&m_minH)->default_value(0),          "Minimal horizontal opening angle.")
     ("maxH",            value<int>(&m_maxH)->default_value(360),        "Maximal horizontal opening angle.")
     ("minV",            value<int>(&m_minV)->default_value(-90),        "Minimal vertical opening angle.")
@@ -45,7 +46,7 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
     ("imageHeight,h",   value<int>(&m_height)->default_value(1000),     "Image height.")
     ("regionWidth,i",    value<int>(&m_width)->default_value(5),      "Width of the nearest neighbor region of a pixel for normal estimation.")
     ("regionHeight,j",   value<int>(&m_height)->default_value(5),     "Height of the nearest neighbor region of a pixel for normal estimation.")
-    ("optimize,o",      "Optimize image aspect ratio.")
+    ("optimizeRatio,r",      "Optimize image aspect ratio.")
     ("system,s",        value<string>(&m_system)->default_value("NATIVE"), "The coordinate system in which the points are stored. Use NATIVE to interpret the points as they are. Use SLAM6D for scans in 3dtk's coordinate system and UOS for scans that where taken with a tilting laser scanner at Osnabrueck University.")
 	;
 
