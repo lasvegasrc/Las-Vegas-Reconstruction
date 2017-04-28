@@ -180,7 +180,7 @@ inline ostream& operator<<(ostream& os, const Options& o)
     os << "Z range (img)\t\t\t: " << o.minZimg() << " to " << o.maxZimg() << endl;
     os << "Optimize aspect\t\t\t: " << o.optimize() << endl;
     os << "Coordinate system\t\t: " << o.coordinateSystem() << endl;
-    os << "Output file\t\t\t: " << o.coordinateSystem() << endl;
+    os << "Output file\t\t\t: " << o.outputFile() << endl;
     return os;
 }
 
