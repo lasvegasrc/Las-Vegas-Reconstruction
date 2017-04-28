@@ -25,18 +25,13 @@
 #include <lvr/reconstruction/ModelToImage.hpp>
 #include <lvr/reconstruction/PanoramaNormals.hpp>
 #include "Options.hpp"
+
+#include <boost/filesystem.hpp>
+
 using namespace lvr;
 
-
-/**
- * @brief   Main entry point for the LSSR surface executable
- */
-int main(int argc, char** argv)
+void computeNormals(image_normals::Options& opt, PointBufferPtr& buffer)
 {
-    image_normals::Options opt(argc, argv);
-    cout << opt << endl;
-
-
     ModelPtr model = ModelFactory::readModel(opt.inputFile());
 
     // Determine coordinate system
@@ -63,10 +58,30 @@ int main(int argc, char** argv)
     mti.writePGM(opt.imageFile(), 3000);
 
     PanoramaNormals normals(&mti);
-    PointBufferPtr buffer = normals.computeNormals(opt.regionWidth(), opt.regionHeight(), false);
+    buffer = normals.computeNormals(opt.regionWidth(), opt.regionHeight(), false);
+}
 
-    ModelPtr out_model(new Model(buffer));
+/**
+ * @brief   Main entry point for the LSSR surface executable
+ */
+int main(int argc, char** argv)
+{
+    image_normals::Options opt(argc, argv);
+    cout << opt << endl;
+    
+    boost::filesystem::path inFile(opt.inputFile());
 
-    ModelFactory::saveModel(out_model, "normals.ply");
+    if(boost::filesystem::is_directory(inFile))
+    {
+
+    }
+    else
+    {
+        PointBufferPtr buffer;
+        computeNormals(opt, buffer);
+        ModelPtr out_model(new Model(buffer));
+        ModelFactory::saveModel(out_model, opt.outputFile());
+    }
+
 }
 
