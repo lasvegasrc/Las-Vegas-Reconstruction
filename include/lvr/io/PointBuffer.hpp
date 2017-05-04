@@ -85,7 +85,6 @@ public:
      **/
     void setPointArray( floatArr array, size_t n );
 
-
     /**
      * \brief Set the point color array.
      *

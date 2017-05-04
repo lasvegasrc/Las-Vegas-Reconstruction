@@ -245,21 +245,35 @@ void transform(PointBufferPtr& buffer, boost::filesystem::path& inFile, vector<f
 
 void writeVectors(vector<float>& p, vector<float>& n, string outfile)
 {
-    cout << timestamp << "Saving " << outfile << endl;
+
     ModelPtr model(new Model);
     PointBufferPtr buffer(new PointBuffer);
+    
+    // Passing the raw data pointers from the vectors
+    // to a shared array is a bad idea. Due to the PointBuffer
+    // interface we have to copy the data :-(
+//    floatArr points(p.data());
+//    floatArr normals(n.data());
 
-    float* fp = &p[0];
+    floatArr points(new float[p.size()]);
+    floatArr normals(new float[n.size()]);
 
-    floatArr points(p.data());
-    floatArr normals(n.data());
+    cout << timestamp << "Copying buffers for output." << endl;
+    // Assuming p and n have the same size (which they should)
+    for(size_t i = 0; i < p.size(); i++)
+    {
+        points[i] = p[i];
+        normals[i] = n[i];
+    }
 
     buffer->setPointArray(points, p.size() / 3);
     buffer->setPointNormalArray(normals, n.size() / 3);
 
     model->m_pointCloud = buffer;
 
+    cout << timestamp << "Saving " << outfile << endl;
     ModelFactory::saveModel(model, outfile);
+    cout << timestamp << "Done." << endl;
 }
 
 /**

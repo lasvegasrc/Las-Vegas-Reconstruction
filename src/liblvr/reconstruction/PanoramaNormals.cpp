@@ -148,7 +148,7 @@ PointBufferPtr PanoramaNormals::computeNormals(int width, int height, bool inter
 
                     Vertex<float> pt(in_points[index    ] - mean.x,
                                      in_points[index + 1] - mean.y,
-                                     in_points[index + 3] - mean.z);
+                                     in_points[index + 2] - mean.z);
 
                     covariance[4] += pt.y * pt.y;
                     covariance[7] += pt.y * pt.z;
