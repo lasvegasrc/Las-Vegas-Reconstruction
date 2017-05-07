@@ -38,8 +38,10 @@ endif(MSVC)
 find_package( CUDA 8.0 REQUIRED )
 
 set(HAVE_CUDA 1)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--ftz=true;--prec-div=false;--prec-sqrt=false")
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-arch=sm_50")
+#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "--ftz=true;--prec-div=false;--prec-sqrt=false")
+#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-G")
+#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-g")	
+#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-arch=sm_50")
 
 include_directories(${CUDA_INCLUDE_DIRS})
 
