@@ -22,14 +22,11 @@
  * @author Matthias Greshake
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <cstring>
-#include <rply.h>
 #include <lvr/reconstruction/cuda/calcNormalsCuda.h>
 #include <lvr/io/ModelFactory.hpp>
+#include <lvr/io/Timestamp.hpp>
 #include "Options.hpp"
+
 
 using namespace lvr;
 
@@ -48,22 +45,22 @@ int main(int argc, char** argv){
 		
 		points = model->m_pointCloud->getPointArray(num_points);
 		
-		std::cout << "Read " << num_points << " Points" << std::endl;
+        cout << timestamp <<  "Read " << num_points << " Points" << endl;
 		
 	} else if (model->m_mesh) {
 		
 		points = model->m_mesh->getVertexArray(num_points);
 		
-		std::cout << "Read " << num_points << " Vertices" << std::endl;
+        cout << timestamp << "Read " << num_points << " Vertices" << endl;
 		
 	}
 	
 	
 	floatArr normals = floatArr(new float[ num_points * 3 ]);
 	
-	std::cout << "Constructing kd-tree..." << std::endl;
+    cout << timestamp << "Constructing kd-tree..." << endl;
 	CalcNormalsCuda calculator(points, num_points);
-    std::cout << "Finished kd-tree construction." << std::endl;
+    cout << timestamp << "Finished kd-tree construction." << endl;
 	
 	
 	calculator.setK(opt.kd());
@@ -80,12 +77,12 @@ int main(int argc, char** argv){
 	calculator.setFlippoint(opt.flipx(), opt.flipy(), opt.flipz());
 	
 	
-    std::cout << "Start Normal Calculation..." << std::endl;
+    cout << timestamp << "Start Normal Calculation..." << endl;
 	calculator.start();
     
 	
 	calculator.getNormals(normals);
-	std::cout << "Finished Normal Calculation. " << std::endl;
+    cout << timestamp << "Finished Normal Calculation. " << endl;
 	
 	
 	
