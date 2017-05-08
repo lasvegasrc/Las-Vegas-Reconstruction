@@ -34,7 +34,6 @@ int main(int argc, char** argv){
 	cuda_normals::Options opt(argc, argv);
     cout << opt << endl;
     
-
     ModelPtr model = ModelFactory::readModel(opt.inputFile());
     
 	
@@ -67,9 +66,9 @@ int main(int argc, char** argv){
 	calculator.setK(opt.kd());
 	
 	
-	if(opt.useRansac()){
+    if(opt.useRansac()) {
 		calculator.setMethod("RANSAC");
-	}else{
+    } else {
 		calculator.setMethod("PCA");
 	}
 	

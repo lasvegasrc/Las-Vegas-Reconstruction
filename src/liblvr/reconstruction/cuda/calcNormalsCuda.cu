@@ -771,15 +771,15 @@ void CalcNormalsCuda::naturalMergeSort(PointArray& in, int dim, PointArray& indi
 		
 		for(i=2;i<int(num_slides+1);i+=2)
 		{
-				
-			mergeHostWithIndices(m.elements, indices.elements , slide_buffer[i-2], slide_buffer[i-1]-1, slide_buffer[i-1], slide_buffer[i]-1, current_limit);
+
+            mergeHostWithIndices( m.elements, indices.elements , slide_buffer[i-2], slide_buffer[i-1]-1, slide_buffer[i-1], slide_buffer[i]-1, current_limit );
 			
 			
-			slide_buffer[i/2]= slide_buffer[i];
+            slide_buffer[i/2] = slide_buffer[i];
 		}
 		
 		if(num_slides%2 == 1){
-			slide_buffer[(num_slides+1)/2] = slide_buffer[num_slides];
+            slide_buffer[ (num_slides+1)/2 ] = slide_buffer[num_slides];
 		}
 		
 		count ++;
@@ -878,7 +878,7 @@ void CalcNormalsCuda::generateKdTreeRecursive(PointArray& V, PointArray* sorted_
 			sorted_indices_right[i].dim = 1;
 			sorted_indices_right[i].elements = (float*)malloc( (right_size+1) * sizeof(float) );
 			
-			if(i==current_dim){
+            if( i == current_dim ) {
 				splitPointArray( sorted_indices[i], sorted_indices_left[i], sorted_indices_right[i]);
 			}else{
 				splitPointArrayWithValue(V, sorted_indices[i], sorted_indices_left[i], sorted_indices_right[i], current_dim, split_value);
