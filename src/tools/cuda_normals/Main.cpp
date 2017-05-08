@@ -34,6 +34,7 @@ int main(int argc, char** argv){
 	cuda_normals::Options opt(argc, argv);
     cout << opt << endl;
     
+
     ModelPtr model = ModelFactory::readModel(opt.inputFile());
     
 	
@@ -76,6 +77,8 @@ int main(int argc, char** argv){
 	
 	calculator.setFlippoint(opt.flipx(), opt.flipy(), opt.flipz());
 	
+    calculator.setBlockSizeFactor(opt.bFactor());
+
 	
     cout << timestamp << "Start Normal Calculation..." << endl;
 	calculator.start();
@@ -83,8 +86,6 @@ int main(int argc, char** argv){
 	
 	calculator.getNormals(normals);
     cout << timestamp << "Finished Normal Calculation. " << endl;
-	
-	
 	
     ModelPtr out_model;
     

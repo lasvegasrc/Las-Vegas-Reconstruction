@@ -38,6 +38,7 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
     ("flipx", value<float>(&m_flipx)->default_value(100000.0), "Flippoint x" )
     ("flipy", value<float>(&m_flipy)->default_value(100000.0), "Flippoint y" )
     ("flipz", value<float>(&m_flipz)->default_value(100000.0), "Flippoint z" )
+    ("bFactor", value<int>(&m_b_factor)->default_value(16), "GPU Blocksize Factor. Thread Reduce for faster shared memory access." )
     ;
 
     m_pdescr.add("inputFile", -1);
