@@ -31,7 +31,9 @@
 using namespace lvr;
 
 int main(int argc, char** argv){
-	cuda_normals::Options opt(argc, argv);
+	// CUDA NORMAL ESTIMATION
+    
+    cuda_normals::Options opt(argc, argv);
     cout << opt << endl;
     
     ModelPtr model = ModelFactory::readModel(opt.inputFile());
