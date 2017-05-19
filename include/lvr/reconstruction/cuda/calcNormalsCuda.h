@@ -120,14 +120,6 @@ public:
 	 */
 	void setMethod(std::string method);
 
-    /**
-     * @brief Set Blocksize Factor -> reduces threads per block. 1: maximum Threads
-     *
-     * @param b_factor  Blocksize Factor
-     *
-     */
-    void setBlockSizeFactor(int b_factor);
-	
 	
 private:
 	//~ Hostfunctions
@@ -178,8 +170,6 @@ private:
 	PointArray V, kd_tree, Result_Normals;
 	float m_vx, m_vy, m_vz;
 	int m_k;
-    int m_b_factor;
-	
 	
 	int m_calc_method;
 

@@ -519,8 +519,6 @@ void CalcNormalsCuda::init(){
 	this->m_vz = 1000000.0;
 	
 	this->m_calc_method = 0;
-
-    this->m_b_factor = 16;
 }
 
 CalcNormalsCuda::CalcNormalsCuda(PointArray& points)
@@ -928,11 +926,11 @@ void CalcNormalsCuda::GPU_NN(PointArray& D_V, PointArray& D_kd_tree, PointArray&
 	int blocksPerGrid = (D_V.width + threadsPerBlock-1)/threadsPerBlock;
 
     // kNN-search and Normal calculation
-    KNNKernel<<<blocksPerGrid * this->m_b_factor, threadsPerBlock / this->m_b_factor >>>(D_V, D_kd_tree, D_Result_Normals, this->m_k, this->m_calc_method);
+    KNNKernel<<<blocksPerGrid, threadsPerBlock  >>>(D_V, D_kd_tree, D_Result_Normals, this->m_k, this->m_calc_method);
     cudaDeviceSynchronize();
 
     // Flip normals to view point
-    FlipNormalsKernel<<<blocksPerGrid * this->m_b_factor, threadsPerBlock / this->m_b_factor >>>(D_V, D_Result_Normals, this->m_vx, this->m_vy, this->m_vz);
+    FlipNormalsKernel<<<blocksPerGrid, threadsPerBlock >>>(D_V, D_Result_Normals, this->m_vx, this->m_vy, this->m_vz);
 	cudaDeviceSynchronize();
 
     //TODO: Interpolate
@@ -994,10 +992,6 @@ void CalcNormalsCuda::setMethod(std::string method) {
 		printf("WARNING: Normal Calculation Method is not implemented\n");
 	}
 
-}
-
-void CalcNormalsCuda::setBlockSizeFactor(int b_factor) {
-    this->m_b_factor = b_factor;
 }
 
 void CalcNormalsCuda::printSettings() {

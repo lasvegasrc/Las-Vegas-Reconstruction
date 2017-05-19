@@ -78,8 +78,6 @@ int main(int argc, char** argv){
 	
 	calculator.setFlippoint(opt.flipx(), opt.flipy(), opt.flipz());
 	
-    calculator.setBlockSizeFactor(opt.bFactor());
-
 	
     cout << timestamp << "Start Normal Calculation..." << endl;
 	calculator.start();

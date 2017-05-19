@@ -89,11 +89,6 @@ public:
         return m_variables["kd"].as<int>();
 	}
 
-    int     bFactor() const
-    {
-        return m_variables["bFactor"].as<int>();
-    }
-
 private:
 
 	/// The internally used variable map
@@ -109,7 +104,6 @@ private:
     float		  m_flipy;
     float 		  m_flipz;
     int			  m_kd;
-    int           m_b_factor;
 };
 
 inline ostream& operator<<(ostream& os, const Options& o)
@@ -126,8 +120,6 @@ inline ostream& operator<<(ostream& os, const Options& o)
     os << "Flippoint x: " << o.flipx() << endl;
     os << "Flippoint y: " << o.flipy() << endl;
     os << "Flippoint z: " << o.flipz() << endl;
-
-    os << "Blocksize-Factor: " << o.bFactor() << endl;
     
     return os;
 }
