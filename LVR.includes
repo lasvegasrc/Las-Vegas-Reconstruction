@@ -36,3 +36,4 @@ src/tools/image_normals
 include/lvr/io
 src/liblvr/reconstruction
 include/lvr/geometry
+src/liblvr/io

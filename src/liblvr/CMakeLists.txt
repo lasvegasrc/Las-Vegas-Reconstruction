@@ -18,6 +18,7 @@ set(LVR_SOURCES
     io/STLIO.cpp
     io/TextureIO.cpp
     io/DatIO.cpp
+    io/IOUtils.cpp
     config/BaseOption.cpp
     display/InteractivePointCloud.cpp
     display/CoordinateAxes.cpp

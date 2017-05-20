@@ -936,3 +936,7 @@ include/lvr/geometry/Vertex.hpp
 include/lvr/geometry/Vertex.tcc
 include/lvr/geometry/VertexCosts.hpp
 include/lvr/geometry/VertexTraits.hpp
+src/liblvr/io/IOUtils.cpp
+include/lvr/io/IOUtils.hpp
+CMakeLists.txt
+CMakeLists.txt
