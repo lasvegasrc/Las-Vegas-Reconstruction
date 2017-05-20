@@ -37,3 +37,4 @@ include/lvr/io
 src/liblvr/reconstruction
 include/lvr/geometry
 src/liblvr/io
+src/tools/cuda_normals

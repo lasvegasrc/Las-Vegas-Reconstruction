@@ -317,4 +317,119 @@ void transformPointCloud(ModelPtr model, Eigen::Matrix4d transformation)
     }
 }
 
+void transformPointCloudAndAppend(PointBufferPtr& buffer, boost::filesystem::path& transfromFile, std::vector<float>& pts, std::vector<float>& nrm)
+{
+     std::cout << timestamp << "Transforming normals " << std::endl;
+
+     char frames[2048];
+     char pose[2014];
+
+     sprintf(frames, "%s/%s.frames", transfromFile.parent_path().c_str(), transfromFile.stem().c_str());
+     sprintf(pose, "%s/%s.pose", transfromFile.parent_path().c_str(), transfromFile.stem().c_str());
+
+     boost::filesystem::path framesPath(frames);
+     boost::filesystem::path posePath(pose);
+
+
+     Eigen::Matrix4d transform = Eigen::Matrix4d::Identity();
+
+     if(boost::filesystem::exists(framesPath))
+     {
+        std::cout << timestamp << "Transforming according to " << framesPath.filename() << std::endl;
+        transform = getTransformationFromFrames(framesPath);
+     }
+     else if(boost::filesystem::exists(posePath))
+     {
+        std::cout << timestamp << "Transforming according to " << posePath.filename() << std::endl;
+        transform = getTransformationFromFrames(posePath);
+     }
+     else
+     {
+        std::cout << timestamp << "Warning: found no transformation for " << transfromFile.filename() << std::endl;
+     }
+
+     size_t n_normals;
+     size_t n_points;
+
+     floatArr normals = buffer->getPointNormalArray(n_normals);
+     floatArr points = buffer->getPointArray(n_points);
+
+     if(n_normals != n_points)
+     {
+         std::cout << timestamp << "Warning: point and normal count mismatch" << std::endl;
+         return;
+     }
+
+     for(size_t i = 0; i < n_points; i++)
+     {
+
+        float x = points[3 * i];
+        float y = points[3 * i + 1];
+        float z = points[3 * i + 2];
+
+        Eigen::Vector4d v(x,y,z,1);
+        Eigen::Vector4d tv = transform * v;
+
+//        points[3 * i]     = tv[0];
+//        points[3 * i + 1] = tv[1];
+//        points[3 * i + 2] = tv[2];
+
+        pts.push_back(tv[0]);
+        pts.push_back(tv[1]);
+        pts.push_back(tv[2]);
+
+        Eigen::Matrix3d rotation = transform.block(0, 0, 3, 3);
+
+        float nx = normals[3 * i];
+        float ny = normals[3 * i + 1];
+        float nz = normals[3 * i + 2];
+
+        Eigen::Vector3d normal(nx, ny, nz);
+        Eigen::Vector3d tn = rotation * normal;
+
+//        normals[3 * i]     = tn[0];
+//        normals[3 * i + 1] = tn[1];
+//        normals[3 * i + 2] = tn[2];
+
+        nrm.push_back(tn[0]);
+        nrm.push_back(tn[1]);
+        nrm.push_back(tn[2]);
+     }
+
+}
+
+void writePointsAndNormals(std::vector<float>& p, std::vector<float>& n, std::string outfile)
+{
+
+    ModelPtr model(new Model);
+    PointBufferPtr buffer(new PointBuffer);
+
+    // Passing the raw data pointers from the vectors
+    // to a shared array is a bad idea. Due to the PointBuffer
+    // interface we have to copy the data :-(
+    //    floatArr points(p.data());
+    //    floatArr normals(n.data());
+
+    floatArr points(new float[p.size()]);
+    floatArr normals(new float[n.size()]);
+
+    std::cout << timestamp << "Copying buffers for output." << std::endl;
+    // Assuming p and n have the same size (which they should)
+    for(size_t i = 0; i < p.size(); i++)
+    {
+        points[i] = p[i];
+        normals[i] = n[i];
+    }
+
+    buffer->setPointArray(points, p.size() / 3);
+    buffer->setPointNormalArray(normals, n.size() / 3);
+
+    model->m_pointCloud = buffer;
+
+    std::cout << timestamp << "Saving " << outfile << std::endl;
+    ModelFactory::saveModel(model, outfile);
+    std::cout << timestamp << "Done." << std::endl;
+}
+
+
 } // namespace lvr

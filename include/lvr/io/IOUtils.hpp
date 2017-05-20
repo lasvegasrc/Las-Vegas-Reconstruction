@@ -9,6 +9,7 @@
 #include <Eigen/Dense>
 
 #include <fstream>
+#include <vector>
 
 namespace lvr
 {
@@ -119,6 +120,32 @@ void transformAndReducePointCloud(ModelPtr model, int modulo, int sx, int sy, in
  * @param   A transformation.
  */
 void transformPointCloud(ModelPtr model, Eigen::Matrix4d transformation);
+
+/**
+ * @brief   Transforms the given point buffer according to the transformation
+ *          stored in \ref transformFile and appends the transformed points and
+ *          normals to \ref pts and \ref nrm.
+ *
+ * @param   buffer          A PointBuffer
+ * @param   transformFile   The input file name. The fuction will search for transformation information
+ *                          (.pose or .frames)
+ * @param   pts             The transformed points are added to this vector
+ * @param   nrm             The transformed normals are added to this vector
+ */
+void transformPointCloudAndAppend(PointBufferPtr& buffer, boost::filesystem::path& transfromFile, std::vector<float>& pts, std::vector<float>& nrm);
+
+/**
+ * @brief   Writes the points and normals (float triples) stored in \ref p and \ref n
+ *          to the given output file. Attention: The data is converted to a PointBuffer
+ *          structure to be able to use the IO library, which results in a considerable
+ *          memory overhead.
+ *
+ * @param   p               A vector containing point definitions.
+ * @param   n               A vector containing normal information.
+ * @param   outfile         The target file.
+ */
+void writePointsAndNormals(std::vector<float>& p, std::vector<float>& n, std::string outfile);
+
 
 } // namespace lvr
 

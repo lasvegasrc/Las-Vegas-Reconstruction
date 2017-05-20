@@ -53,6 +53,12 @@ public:
 	Options(int argc, char** argv);
 	virtual ~Options();
 
+    string  outputFile() const
+    {
+        return (m_variables["outputFile"].as<string>());
+    }
+
+
 
     string  inputFile() const
 	{
@@ -104,6 +110,7 @@ private:
     float		  m_flipy;
     float 		  m_flipz;
     int			  m_kd;
+    string        m_outputFile;
 };
 
 inline ostream& operator<<(ostream& os, const Options& o)
