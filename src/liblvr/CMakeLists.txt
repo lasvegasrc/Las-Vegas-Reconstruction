@@ -115,6 +115,35 @@ if(WITH_FREENECT AND LIBFREENECT_FOUND)
   set(LVR_LIB_DEPENDENCIES ${LVR_LIB_DEPENDENCIES} ${LIBFREENECT_LIBRARIES})
 endif()
 
+
+
+#####################################################################################
+# CUDA stuff
+#####################################################################################
+
+if(CUDA_FOUND)
+set(LVR_CUDA_SRC
+  reconstruction/cuda/CUDANormals.cu
+)
+
+message(STATUS "Building static LVR CUDA library")
+cuda_add_library(lvrcuda_static STATIC ${LVR_CUDA_SRC})
+
+# Add dependency to avoid that both targets
+# are build concurrently in parallel builds
+add_dependencies(lvrcuda_static lvrcuda) 
+
+message(STATUS "Building shared LVR CUDA library")
+cuda_add_library(lvrcuda SHARED ${LVR_CUDA_SRC})
+
+install(TARGETS lvrcuda_static lvrcuda 
+  EXPORT lvrTargets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+endif()
+
 #####################################################################################
 # Compile object files for static and dynamic library
 #####################################################################################
@@ -125,7 +154,7 @@ add_library(lvrcore OBJECT ${LVR_SOURCES})
 # Build static library
 #####################################################################################
 
-message(STATUS "Building static library")
+message(STATUS "Building static LVR libraries")
 add_library(lvr_static STATIC $<TARGET_OBJECTS:lvrcore>)
 target_link_libraries(lvr_static ${LVR_INTERNAL_DEPENDENCIES_STATIC} ${LVR_LIB_DEPENDENCIES})
 
@@ -135,11 +164,11 @@ target_link_libraries(lvr_static ${LVR_INTERNAL_DEPENDENCIES_STATIC} ${LVR_LIB_D
 #####################################################################################
 
 if( NOT MSVC )
-  message(STATUS "Building shared library")
+  message(STATUS "Building shared LVR libraries")
   add_library(lvr SHARED $<TARGET_OBJECTS:lvrcore>)
   target_link_libraries(lvr ${LVR_INTERNAL_DEPENDENCIES_SHARED} ${LVR_LIB_DEPENDENCIES})
-
-install(TARGETS lvr_static lvr
+ 
+install(TARGETS lvr_static lvr 
   EXPORT lvrTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

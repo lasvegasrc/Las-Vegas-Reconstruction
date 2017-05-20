@@ -35,7 +35,7 @@ endif(MSVC)
 ####
 ## Searching for CUDA
 ##############################
-find_package( CUDA )
+find_package(CUDA 8.0)
 
 
 ####
@@ -278,6 +278,11 @@ if(CUDA_FOUND AND "${OpenCV_VERSION_PATCH}" VERSION_GREATER "8" AND WITH_KINFU)
     message(STATUS "Building LVR KinFu.")
     add_subdirectory(ext/kintinuous)
     include_directories(${LAS_VEGAS_SOURCE_DIR}/ext/kintinuous/kfusion/include)
+endif()
+
+if(CUDA_FOUND)
+     
+     add_subdirectory(src/tools/cuda_normals)
 endif()
 
 ##############################################################
