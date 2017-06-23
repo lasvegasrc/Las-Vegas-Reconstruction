@@ -25,6 +25,8 @@
 #ifndef __CALCNORMALSCUDA_H
 #define __CALCNORMALSCUDA_H
 
+#include "lvr/reconstruction/LBKdTree.hpp"
+#include "lvr/reconstruction/LBPointArray.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -39,7 +41,6 @@
 #include <boost/shared_array.hpp>
 
 
-
 static void HandleError( cudaError_t err,
                          const char *file,
                          int line ) {
@@ -51,17 +52,6 @@ static void HandleError( cudaError_t err,
 }
 #define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 
-namespace lvr {
-
-struct PointArray {
-    int width;
-    int dim;
-    float* elements;
-};
-
-//~ Device Functions
-//~ __global__ void KNNKernel(const PointArray D_V, const PointArray D_kd_tree, PointArray D_Result_Normals, int k=50);
-
 typedef boost::shared_array<float> floatArr;
 
 class CalcNormalsCuda {
@@ -72,7 +62,7 @@ public:
 	 *
      * @param points Input Pointcloud for kd-tree construction
 	 */
-	CalcNormalsCuda(PointArray& points);
+        CalcNormalsCuda(LBPointArray& points);
 	
 	CalcNormalsCuda(floatArr& points, size_t num_points, size_t dim = 3);
 	
@@ -89,7 +79,7 @@ public:
 	 * 
 	 * @param output_normals 	PointArray as return value
 	 */
-	void getNormals(PointArray& output_normals);
+	void getNormals(LBPointArray& output_normals);
 	
 	void getNormals(floatArr output_normals);
 	
@@ -128,48 +118,32 @@ private:
 	void printSettings();
 	
 	void getCudaInformation();
-	
-	void mallocPointArray(PointArray& m);
 
-	void generateHostPointArray(PointArray& m, int width, int dim);
+    void calculateBlocksThreads(int n, int elements, int element_size, int max_mem_shared, int max_threads_per_block,
+                                int& out_blocks_per_grid, int& out_threads_per_block, int& needed_shared_memory);
 
-	void generateDevicePointArray(PointArray& D_m, int width, int dim);
+	void generateDevicePointArray(LBPointArray& D_m, int width, int dim);
 
-	void copyToDevicePointArray(PointArray& m, PointArray& D_m);
+	void copyToDevicePointArray(LBPointArray& m, LBPointArray& D_m);
 
-	void copyToHostPointArray(PointArray& D_m, PointArray& m);
-	
-	void fillPointArrayWithSequence(PointArray& m);
+	void copyToHostPointArray(LBPointArray& D_m, LBPointArray& m);
 
-	void copyDimensionToPointArray(PointArray& in, int dim, PointArray& out);
-	
-	void copyVectorInterval(PointArray& in, int start, int end, PointArray& out);
-	
-	void naturalMergeSort(PointArray& in, int dim, PointArray& indices,  PointArray& m, int limit=-1);
-	
-	void mergeHostWithIndices(float* a, float* b, int i1, int j1, int i2, int j2, int limit=-1);
-	
-	void sortByDim(PointArray& V, int dim, PointArray& indices, PointArray& values);
-	
-	void splitPointArray(PointArray& I, PointArray& I_L, PointArray& I_R);
-	
-	void splitPointArrayWithValue(PointArray& V, PointArray& I, PointArray& I_L, PointArray& I_R, int current_dim, float value);
-	
-	void generateKdTreeRecursive(PointArray& V, PointArray* sorted_indices, int current_dim, int max_dim, PointArray& kd_tree, int size, int max_tree_depth, int position);
-	
-	void generateKdTreeArray(PointArray& V, PointArray* sorted_indices, int max_dim, PointArray& kd_tree);
-	
 	// Divice Function
-	void GPU_NN(PointArray& D_V, PointArray& D_kd_tree, PointArray& D_Result_Normals, PointArray& Result_Normals);
+	void GPU_NN(LBPointArray& D_V, LBPointArray& D_kd_tree, LBPointArray& D_Result_Normals, LBPointArray& Result_Normals);
 	
+    // Test
+    
 	void initKdTree();
 	
 	
 	
 	// V->points and normals
-	PointArray V, kd_tree, Result_Normals;
+	LBPointArray V, kd_tree, Result_Normals;
+    LBKdTree* kd_tree_gen;
+
 	float m_vx, m_vy, m_vz;
 	int m_k;
+	
 	
 	int m_calc_method;
 
@@ -183,6 +157,6 @@ private:
 		
 };
 
-}
+
 
 #endif // !__CALCNORMALSCUDA_H

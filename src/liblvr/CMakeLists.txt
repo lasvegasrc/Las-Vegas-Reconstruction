@@ -36,6 +36,7 @@ set(LVR_SOURCES
     display/TexturedMesh.cpp
     registration/EigenSVDPointAlign.cpp
     registration/ICPPointAlign.cpp
+    reconstruction/LBKdTree.cpp
     reconstruction/ModelToImage.cpp
     reconstruction/Projection.cpp
     reconstruction/PanoramaNormals.cpp
@@ -129,10 +130,11 @@ set(LVR_CUDA_SRC
 
 message(STATUS "Building static LVR CUDA library")
 cuda_add_library(lvrcuda_static STATIC ${LVR_CUDA_SRC})
+target_link_libraries(lvrcuda_static lvr_static)
 
 # Add dependency to avoid that both targets
 # are build concurrently in parallel builds
-add_dependencies(lvrcuda_static lvrcuda) 
+add_dependencies(lvrcuda_static lvrcuda_static lvr_static) 
 
 message(STATUS "Building shared LVR CUDA library")
 cuda_add_library(lvrcuda SHARED ${LVR_CUDA_SRC})

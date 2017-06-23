@@ -245,6 +245,11 @@ add_subdirectory(ext/slam6d)
 include_directories( ${SLAM6D_INCLUDE_DIR} )
 list(APPEND LVR_INSTALL_INCLUDE_DIRS ${SLAM6D_INSTALL_INCLUDE_DIR})
 
+# CTPL
+
+include_directories(ext/CTPL)
+
+
 ##############################################################
 # ADD LVR DEFINITIONS
 ##############################################################
@@ -281,7 +286,7 @@ if(CUDA_FOUND AND "${OpenCV_VERSION_PATCH}" VERSION_GREATER "8" AND WITH_KINFU)
 endif()
 
 if(CUDA_FOUND)
-     
+     cuda_include_directories(ext/CTPL)
      add_subdirectory(src/tools/cuda_normals)
 endif()
 
