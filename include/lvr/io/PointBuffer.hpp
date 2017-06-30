@@ -42,9 +42,9 @@
 
 #include <vector>
 #include <algorithm>
-#include "DataStruct.hpp"
-
 #include <boost/shared_ptr.hpp>
+
+#include "DataStruct.hpp"
 
 namespace lvr
 {

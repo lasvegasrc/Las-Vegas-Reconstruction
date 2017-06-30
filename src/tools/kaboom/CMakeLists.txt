@@ -12,6 +12,10 @@ set(KABOOM_SOURCES
 #####################################################################################
 
 set(LVR_KABOOM_DEPENDENCIES
+  	${Boost_PROGRAM_OPTIONS_LIBRARY}
+	${Boost_SYSTEM_LIBRARY}
+	${Boost_THREAD_LIBRARY}
+	${Boost_FILESYSTEM_LIBRARY}
 	lvr_static
 	lvrlas_static
 	lvrrply_static
@@ -24,6 +28,8 @@ set(LVR_KABOOM_DEPENDENCIES
 if(PCL_FOUND)
     set(LVR_KABOOM_DEPENDENCIES ${LVR_LEICA_DEPENDENCIES} ${PCL_LIBRARIES} )
 endif(PCL_FOUND)
+
+message(STATUS ${LVR_KABOOM_DEPENDENCIES})
 
 #####################################################################################
 # Add executable

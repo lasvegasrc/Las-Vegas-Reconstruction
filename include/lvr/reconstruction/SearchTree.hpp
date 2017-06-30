@@ -26,7 +26,7 @@
 #ifndef SEARCH_TREE_H_
 #define SEARCH_TREE_H_
 
-#include <lvr/io/DataStruct.hpp>
+#include <lvr/io/PointBuffer.hpp>
 
 // Standard C++ includes
 #include <vector>
