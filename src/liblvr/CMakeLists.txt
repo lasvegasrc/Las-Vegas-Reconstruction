@@ -125,7 +125,7 @@ endif()
 
 if(CUDA_FOUND)
 set(LVR_CUDA_SRC
-  reconstruction/cuda/CUDANormals.cu
+  reconstruction/cuda/CudaSurface.cu
 )
 
 # Fix broken VTK flags

@@ -35,10 +35,15 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
     ("outputFile,o",    value<string>(&m_outputFile)->default_value("normals.ply"), "Output file name.")
     ("ransac", "Set this flag for RANSAC based normal estimation.")
     ("pca", "Set this flag for RANSAC based normal estimation.")
-    ("kd", value<int>(&m_kd)->default_value(50), "Number of normals used for distance function evaluation")
+    ("kn", value<int>(&m_kn)->default_value(10), "Number of normals used for normal estimation")
+    ("ki", value<int>(&m_ki)->default_value(10), "Number of normals used for normal interpolation")
+    ("kd", value<int>(&m_kd)->default_value(5), "Number of normals used for distance calculation")
     ("flipx", value<float>(&m_flipx)->default_value(100000.0), "Flippoint x" )
     ("flipy", value<float>(&m_flipy)->default_value(100000.0), "Flippoint y" )
     ("flipz", value<float>(&m_flipz)->default_value(100000.0), "Flippoint z" )
+    ("reconstruct,r","Reconstruct after normal calculation")
+    ("exportPointNormals,e","save Pointnormals before reconstruction")
+    ("voxelsize,v",value<float>(&m_voxelsize)->default_value(10.0),"voxelsize for marching cubes")
     ;
 
     m_pdescr.add("inputFile", -1);

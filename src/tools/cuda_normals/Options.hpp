@@ -90,9 +90,39 @@ public:
 		return m_variables["flipz"].as<float>();
 	}
 	
-	int     kd() const
+	int     kn() const
 	{
-        return m_variables["kd"].as<int>();
+        return m_variables["kn"].as<int>();
+	}
+
+	int 	ki() const
+	{
+		return m_variables["ki"].as<int>();
+	}
+
+	int		kd() const
+	{
+		return m_variables["kd"].as<int>();
+	}
+
+	float 	getVoxelsize() const
+	{
+		return m_variables["voxelsize"].as<float>();
+	}
+
+	bool 	useVoxelSize() const
+	{
+		return m_variables.count("voxelsize");
+	}
+
+	bool 	reconstruct() const
+	{
+		return m_variables.count("reconstruct");
+	}	
+
+	bool	exportPointNormals() const
+	{
+		return m_variables.count("exportPointNormals");
 	}
 
 private:
@@ -109,7 +139,10 @@ private:
     float         m_flipx;
     float		  m_flipy;
     float 		  m_flipz;
-    int			  m_kd;
+    int			  m_kn;
+	int 		  m_ki;
+	int			  m_kd;
+	float		  m_voxelsize;
     string        m_outputFile;
 };
 
@@ -123,7 +156,9 @@ inline ostream& operator<<(ostream& os, const Options& o)
 	}else{
 		os << "Normal Calculation with PCA" << endl;
 	}
-	os << "Neighbors for normal estimation: "<< o.kd() << endl;
+	os << "Neighbors for normal estimation: "<< o.kn() << endl;
+	os << "Neighbors for normal interpolation: " << o.ki() << endl;
+	os << "Neighbors for distance function: " << o.kd() << endl;
     os << "Flippoint x: " << o.flipx() << endl;
     os << "Flippoint y: " << o.flipy() << endl;
     os << "Flippoint z: " << o.flipz() << endl;

@@ -1,13 +1,18 @@
 #ifndef __LBKDTREE_HPP
 #define __LBKDTREE_HPP
 
-#include "LBPointArray.hpp"
-#include "ctpl.h"
+
+#include "lvr/geometry/LBPointArray.hpp"
+
+#include <ctpl.h>
 
 #include <stdlib.h>
 #include <math.h>
+#include <boost/shared_ptr.hpp>
+#include <list>
 
-
+namespace lvr
+{
 
 /**
  * @brief The LBKdTree class implements a left-balanced array-based index kd-tree.
@@ -17,30 +22,24 @@
 class LBKdTree {
 public:
 
-    LBKdTree( LBPointArray& vertices , int num_threads=8);
+    LBKdTree( LBPointArray<float>& vertices , int num_threads=8);
 
-    void generateKdTree( LBPointArray& vertices );
+    void generateKdTree( LBPointArray<float>& vertices );
 
-    LBPointArray getKdTreeArray();
+    boost::shared_ptr<LBPointArray<float> > getKdTreeValues();
 
-    
+    boost::shared_ptr<LBPointArray<unsigned char> > getKdTreeSplits();
 
 private:
 
+    void generateKdTreeArray(LBPointArray<float>& V, LBPointArray<unsigned int>* sorted_indices, int max_dim);
+
+    boost::shared_ptr<LBPointArray<float> > m_values;
+
+    // split dim 4 dims per split_dim
+    boost::shared_ptr<LBPointArray<unsigned char> > m_splits;
+
     
-    void generateKdTreeArray(LBPointArray& V, LBPointArray* sorted_indices, int max_dim, LBPointArray& kd_tree);
-
-    //void generateAndSort(int id, LBPointArray& vertices, LBPointArray* indices_sorted, LBPointArray* values_sorted, int dim);
-
-    void sortByDim(LBPointArray& V, int dim, LBPointArray& indices, LBPointArray& values);
-
-    void naturalMergeSort(LBPointArray& in, int dim, LBPointArray& indices,  LBPointArray& m, int limit=-1);
-
-    void mergeHostWithIndices(float* a, float* b, int i1, int j1, int i2, int j2, int limit=-1);
-
-    LBPointArray kd_tree;
-    
-
     // Static member
 
     static int st_num_threads;
@@ -48,12 +47,19 @@ private:
 
     static ctpl::thread_pool *pool;
 
-    static void generateKdTreeRecursive(int id, LBPointArray& V, LBPointArray* sorted_indices, int current_dim, int max_dim, LBPointArray& kd_tree, int size, int max_tree_depth, int position, int current_depth);
+    static void fillCriticalIndices(const LBPointArray<float>& V, LBPointArray<unsigned int>& sorted_indices, unsigned int current_dim,
+             float split_value, unsigned int split_index,
+             std::list<unsigned int>& critical_indices_left, std::list<unsigned int>& critical_indices_right);
 
-    static void test(int id, LBPointArray* sorted_indices);
+
+    static void generateKdTreeRecursive(int id, LBPointArray<float>& V, LBPointArray<unsigned int>* sorted_indices, int current_dim, int max_dim, LBPointArray<float> *values, LBPointArray<unsigned char> *splits, int size, int max_tree_depth, int position, int current_depth);
+
+    static void test(int id, LBPointArray<float>* sorted_indices);
     
 
 };
 
+
+}  /* namespace lvr */
 
 #endif // !__LBKDTREE_HPP
