@@ -24,7 +24,15 @@
 
 #include <boost/filesystem.hpp>
 
-#include <lvr/reconstruction/cuda/CUDANormals.hpp>
+#include <lvr/reconstruction/cuda/CudaSurface.hpp>
+
+#include <lvr/reconstruction/AdaptiveKSearchSurface.hpp>
+#include <lvr/reconstruction/FastReconstruction.hpp>
+#include <lvr/reconstruction/PointsetSurface.hpp>
+#include <lvr/reconstruction/PointsetGrid.hpp>
+#include <lvr/reconstruction/BilinearFastBox.hpp>
+#include <lvr/geometry/HalfEdgeMesh.hpp>
+
 #include <lvr/io/ModelFactory.hpp>
 #include <lvr/io/Timestamp.hpp>
 #include <lvr/io/IOUtils.hpp>
@@ -32,6 +40,9 @@
 
 
 using namespace lvr;
+
+typedef PointsetSurface<ColorVertex<float, unsigned char> > psSurface;
+typedef AdaptiveKSearchSurface<ColorVertex<float, unsigned char>, Normal<float> > akSurface;
 
 void computeNormals(string filename, cuda_normals::Options& opt, PointBufferPtr& buffer)
 {
@@ -53,27 +64,68 @@ void computeNormals(string filename, cuda_normals::Options& opt, PointBufferPtr&
     floatArr normals = floatArr(new float[ num_points * 3 ]);
 
     cout << timestamp << "Constructing kd-tree..." << endl;
-    CalcNormalsCuda calculator(points, num_points);
+    CudaSurface gpu_surface(points, num_points);
     cout << timestamp << "Finished kd-tree construction." << endl;
 
-    calculator.setK(opt.kd());
+    gpu_surface.setKn(opt.kn());
+    gpu_surface.setKi(opt.ki());
+
     if(opt.useRansac())
     {
-        calculator.setMethod("RANSAC");
+        gpu_surface.setMethod("RANSAC");
     } else
     {
-        calculator.setMethod("PCA");
+        gpu_surface.setMethod("PCA");
     }
-    calculator.setFlippoint(opt.flipx(), opt.flipy(), opt.flipz());
+    gpu_surface.setFlippoint(opt.flipx(), opt.flipy(), opt.flipz());
 
     cout << timestamp << "Start Normal Calculation..." << endl;
-    calculator.start();
+    gpu_surface.calculateNormals();
 
-    calculator.getNormals(normals);
+    gpu_surface.getNormals(normals);
     cout << timestamp << "Finished Normal Calculation. " << endl;
 
     buffer->setPointArray(points, num_points);
     buffer->setPointNormalArray(normals, num_points);
+
+    gpu_surface.freeGPU();
+}
+
+void reconstructAndSave(PointBufferPtr& buffer, cuda_normals::Options& opt)
+{
+    // RECONSTRUCTION
+    // PointsetSurface
+    akSurface* aks = new akSurface(
+                buffer, "FLANN",
+                opt.kn(),
+                opt.ki(),
+                opt.kd(),
+                true
+        );
+
+    psSurface::Ptr surface = psSurface::Ptr(aks);
+
+    // // Create an empty mesh
+    HalfEdgeMesh<ColorVertex<float, unsigned char> , Normal<float> > mesh( surface );
+
+    float resolution = opt.getVoxelsize();
+
+    GridBase* grid;
+    FastReconstructionBase<ColorVertex<float, unsigned char>, Normal<float> >* reconstruction;
+    BilinearFastBox<ColorVertex<float, unsigned char>, Normal<float> >::m_surface = surface;
+
+    grid = new PointsetGrid<ColorVertex<float, unsigned char>, BilinearFastBox<ColorVertex<float, unsigned char>, Normal<float> > >(resolution, surface, surface->getBoundingBox(), true);
+    PointsetGrid<ColorVertex<float, unsigned char>, BilinearFastBox<ColorVertex<float, unsigned char>, Normal<float> > >* ps_grid = static_cast<PointsetGrid<ColorVertex<float, unsigned char>, BilinearFastBox<ColorVertex<float, unsigned char>, Normal<float> > > *>(grid);
+    ps_grid->calcDistanceValues();
+    reconstruction = new FastReconstruction<ColorVertex<float, unsigned char> , Normal<float>, BilinearFastBox<ColorVertex<float, unsigned char>, Normal<float> >  >(ps_grid);
+    reconstruction->getMesh(mesh);
+
+    mesh.finalize();
+
+    ModelPtr m( new Model( mesh.meshBuffer() ) );
+
+    cout << timestamp << "Saving mesh." << endl;
+    ModelFactory::saveModel( m, "triangle_mesh.ply");
 }
 
 int main(int argc, char** argv){
@@ -112,18 +164,45 @@ int main(int argc, char** argv){
             }
         }
 
-        writePointsAndNormals(all_points, all_normals, opt.outputFile());
+        if(!opt.reconstruct() || opt.exportPointNormals() )
+        {
+            writePointsAndNormals(all_points, all_normals, opt.outputFile());
+        }
+        
+        if(opt.reconstruct() )
+        {
+            PointBufferPtr buffer(new PointBuffer);
+
+            floatArr points = floatArr(&all_points[0]);
+            size_t num_points = all_points.size() / 3;
+            
+            floatArr normals = floatArr(&all_normals[0]);
+            size_t num_normals = all_normals.size() / 3;
+
+            buffer->setPointArray(points, num_points);
+            buffer->setPointNormalArray(normals, num_normals);
+
+            reconstructAndSave(buffer, opt);
+        }
+
     }
     else
     {
         PointBufferPtr buffer(new PointBuffer);
         computeNormals(opt.inputFile(), opt, buffer);
-        ModelPtr out_model(new Model(buffer));
-        ModelFactory::saveModel(out_model, opt.outputFile());
+
+        if(!opt.reconstruct() || opt.exportPointNormals() )
+        {
+            ModelPtr out_model(new Model(buffer));
+            ModelFactory::saveModel(out_model, opt.outputFile());
+        }
+
+        if(opt.reconstruct())
+        {
+            reconstructAndSave(buffer, opt);
+        }
+        
     }
-
-
-
 
 
 }

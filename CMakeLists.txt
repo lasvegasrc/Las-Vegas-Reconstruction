@@ -286,8 +286,8 @@ if(CUDA_FOUND AND "${OpenCV_VERSION_PATCH}" VERSION_GREATER "8" AND WITH_KINFU)
 endif()
 
 if(CUDA_FOUND)
-     cuda_include_directories(ext/CTPL)
-     add_subdirectory(src/tools/cuda_normals)
+    cuda_include_directories(ext/CTPL)
+    add_subdirectory(src/tools/cuda_normals)
 endif()
 
 ##############################################################

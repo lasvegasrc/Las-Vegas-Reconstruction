@@ -3,54 +3,87 @@
 #include <iostream>
 #include "lvr/reconstruction/LBKdTree.hpp"
 
+namespace lvr {
 
 // Static variables
+
 ctpl::thread_pool* LBKdTree::pool = new ctpl::thread_pool(8);
 int LBKdTree::st_num_threads = 8;
 int LBKdTree::st_depth_threads = 3;
 
 /// Public
 
-LBKdTree::LBKdTree( LBPointArray& vertices, int num_threads) {
+LBKdTree::LBKdTree( LBPointArray<float>& vertices, int num_threads) {
+    this->m_values = boost::shared_ptr<LBPointArray<float> >(new LBPointArray<float>);
+    this->m_splits = boost::shared_ptr<LBPointArray<unsigned char> >(new LBPointArray<unsigned char>);
     st_num_threads = num_threads;
     st_depth_threads = static_cast<int>(log2(st_num_threads));
     pool = new ctpl::thread_pool(st_num_threads);
     this->generateKdTree(vertices);
 }
 
-void LBKdTree::generateKdTree(LBPointArray &vertices) {
-    struct LBPointArray indices_sorted[ vertices.dim ];
-    struct LBPointArray values_sorted[ vertices.dim ];
+void LBKdTree::generateKdTree(LBPointArray<float> &vertices) {
 
-    // 3 dims in threads!
-    //this->p.push(addFloatPointerRec, vec_a.get(), vec_b.get(), vec_res_thr.get(), 0, vec_size);
+    LBPointArray<unsigned int>* indices_sorted = (LBPointArray<unsigned int>*)malloc(vertices.dim * sizeof(LBPointArray<unsigned int>) );
+    LBPointArray<float>* values_sorted = (LBPointArray<float>*)malloc(vertices.dim * sizeof(LBPointArray<float>) );
 
-    for(int i=0; i< vertices.dim; i++)
+    
+
+    for(unsigned int i=0; i< vertices.dim; i++)
     {
-        pool->push(generateAndSort, vertices, &(indices_sorted[i]), &(values_sorted[i]), i);
+        std::cout << "PRESORT " << i+1 << "/"<< vertices.dim << std::endl;
+        pool->push(generateAndSort<float, unsigned int>, vertices, indices_sorted, values_sorted, i);
+        //generateAndSort<float, unsigned int>(0, vertices, indices_sorted, values_sorted, i);
     }
     
     pool->stop(true);
     pool = new ctpl::thread_pool(st_num_threads);
     
-    this->generateKdTreeArray(vertices, indices_sorted, vertices.dim, this->kd_tree);
+    std::cout << "KDTREE" << std::endl;
+    this->generateKdTreeArray(vertices, indices_sorted, vertices.dim);
 
-    for(int i=0; i<vertices.dim;i++)
+    for(unsigned int i=0; i<vertices.dim;i++)
     {
         //free(indices_sorted[i].elements);
         free(values_sorted[i].elements);
     }
+    //free(indices_sorted);
+    //free(values_sorted);
 }
 
-LBPointArray LBKdTree::getKdTreeArray() {
-    return this->kd_tree;
+boost::shared_ptr<LBPointArray<float> > LBKdTree::getKdTreeValues() {
+    return this->m_values;
+}
+
+boost::shared_ptr<LBPointArray<unsigned char> > LBKdTree::getKdTreeSplits() {
+    return this->m_splits;
 }
 
 /// Private
 
-void LBKdTree::generateKdTreeArray(LBPointArray& V, LBPointArray* sorted_indices, int max_dim, LBPointArray& kd_tree) {
+void LBKdTree::generateKdTreeArray(LBPointArray<float>& V, LBPointArray<unsigned int>* sorted_indices, int max_dim) {
 
-    int size;
+    // DEBUG CHECK
+
+    int first_split_dim = -1;
+    float best_deviation = -1.0;
+    // std::cout << "BOX:" << std::endl;
+    for(int i=0; i<V.dim; i++)
+    {
+        float deviation = V.elements[static_cast<unsigned int>(
+                            sorted_indices[i].elements[sorted_indices[i].width-1]+0.5)* V.dim + i] 
+                        -  V.elements[static_cast<unsigned int>(
+                            sorted_indices[i].elements[i]+0.5)* V.dim + i] ;
+        // std::cout << "Dim: " << i << " size: "<< deviation << std::endl;
+        if(deviation > best_deviation)
+        {
+            best_deviation = deviation;
+            first_split_dim = i;
+        }
+    }
+
+
+    unsigned int size;
     int max_tree_depth;
 
     max_tree_depth = static_cast<int>( log2f(V.width - 1 ) + 2.0 ) ;
@@ -62,10 +95,21 @@ void LBKdTree::generateKdTreeArray(LBPointArray& V, LBPointArray* sorted_indices
 
     size = V.width * 2 - 1;
 
-    generatePointArray(kd_tree, size, 1);
+    // std::cout << "size values: " << size << std::endl;
+    this->m_values->elements = (float*)malloc(sizeof(float) * size );
+    this->m_values->width = size;
+    this->m_values->dim = 1;
 
+    unsigned int size_splits = size - V.width;
+    // std::cout << "size splits: " << size_splits << std::endl;
+    this->m_splits->elements = (unsigned char*)malloc(sizeof(unsigned char) * size_splits );
+    this->m_splits->width = size_splits;
+    this->m_splits->dim = 1;
+
+    LBPointArray<float>* value_ptr = this->m_values.get();
+    LBPointArray<unsigned char>* splits_ptr = this->m_splits.get();
     //start real generate
-    generateKdTreeRecursive(0, V, sorted_indices, 0, max_dim, kd_tree, size, max_tree_depth, 0, 0);
+    generateKdTreeRecursive(0, V, sorted_indices, first_split_dim, max_dim, value_ptr, splits_ptr ,size, max_tree_depth, 0, 0);
 
     //pool->push(generateKdTreeRecursive, V, sorted_indices, 0, max_dim, kd_tree, size, max_tree_depth, 0, 0);
 
@@ -73,68 +117,132 @@ void LBKdTree::generateKdTreeArray(LBPointArray& V, LBPointArray* sorted_indices
     pool = new ctpl::thread_pool(st_num_threads);
 }
 
-void LBKdTree::generateKdTreeRecursive(int id, LBPointArray& V, LBPointArray sorted_indices[], int current_dim, int max_dim, LBPointArray& kd_tree, int size, int max_tree_depth, int position, int current_depth) {
+void LBKdTree::fillCriticalIndices(const LBPointArray<float>& V, LBPointArray<unsigned int>& sorted_indices, unsigned int current_dim,
+             float split_value, unsigned int split_index,
+             std::list<unsigned int>& critical_indices_left, std::list<unsigned int>& critical_indices_right)
+{
+    critical_indices_left.push_back( sorted_indices.elements[split_index] );
+    unsigned int iterator;
+    // nach links
+    for(iterator = split_index-1; 
+        iterator < sorted_indices.width && V.elements[ sorted_indices.elements[iterator] * V.dim + current_dim] == split_value;
+        iterator--)
+    {
+        critical_indices_left.push_back( sorted_indices.elements[iterator] );
+    }
+
+    // nach rechts
+    for(iterator = split_index+1;
+        iterator < sorted_indices.width && V.elements[ sorted_indices.elements[iterator] * V.dim + current_dim] == split_value;
+        iterator++)
+    {
+        critical_indices_right.push_back( sorted_indices.elements[iterator] );
+    }
+    
+}
+
+void LBKdTree::generateKdTreeRecursive(int id, LBPointArray<float>& V, LBPointArray<unsigned int>* sorted_indices, int current_dim, int max_dim, LBPointArray<float> *values, LBPointArray<unsigned char> *splits , int size, int max_tree_depth, int position, int current_depth) {
         
     int left = position*2+1;
     int right = position*2+2;
 
 
-    if( right > size-1 || left > size-1 )
+    if( sorted_indices[current_dim].width <= 1 )
     {
-
-        kd_tree.elements[position] = sorted_indices[current_dim].elements[0];
-
+        values->elements[position] = static_cast<float>(sorted_indices[current_dim].elements[0] );
     } else {
         /// split sorted_indices
-        int indices_size = sorted_indices[current_dim].width;
+        unsigned int indices_size = sorted_indices[current_dim].width;
 
-        int v = pow( 2, static_cast<int>(log2f(indices_size-1) ) );
-        int left_size = indices_size - v/2;
+        unsigned int v = pow( 2, static_cast<int>(log2(indices_size-1) ) );
+        unsigned int left_size = indices_size - v/2;
 
         if( left_size > v )
         {
             left_size = v;
         }
-        int right_size = indices_size - left_size;
 
-        float split_value = ( V.elements[current_dim+static_cast<int>(sorted_indices[current_dim].elements[left_size-1])*V.dim ] + V.elements[current_dim+static_cast<int>(sorted_indices[current_dim].elements[left_size] ) * V.dim] ) /2.0;
+        unsigned int right_size = indices_size - left_size;
 
-        kd_tree.elements[ position ] = split_value;
+        // critical indices
+        std::list<unsigned int> critical_indices_left;
+        std::list<unsigned int> critical_indices_right;
 
-        LBPointArray *sorted_indices_left = (LBPointArray*)malloc( 3*sizeof(LBPointArray) );
-        LBPointArray *sorted_indices_right = (LBPointArray*)malloc( 3*sizeof(LBPointArray) );
+        
+        unsigned int split_index = static_cast<unsigned int>(sorted_indices[current_dim].elements[left_size-1] + 0.5);
+        float split_value = V.elements[split_index * V.dim + current_dim ];
+
+        fillCriticalIndices(V, sorted_indices[current_dim], current_dim, split_value, left_size-1,
+             critical_indices_left, critical_indices_right);
+
+        //std::cout << "Split in dimension: " << current_dim << std::endl;
+        values->elements[ position ] = split_value;
+        splits->elements[ position ] = static_cast<unsigned char>(current_dim);
+        
+
+        LBPointArray<unsigned int> *sorted_indices_left = (LBPointArray<unsigned int>*)malloc( 3*sizeof(LBPointArray<unsigned int>) );
+        LBPointArray<unsigned int> *sorted_indices_right = (LBPointArray<unsigned int>*)malloc( 3*sizeof(LBPointArray<unsigned int>) );
+
+        int next_dim_left = -1;
+        int next_dim_right = -1;
+        float biggest_deviation_left = -1.0;
+        float biggest_deviation_right = -1.0;
 
         for( int i=0; i<max_dim; i++ )
         {
 
             sorted_indices_left[i].width = left_size;
             sorted_indices_left[i].dim = 1;
-            sorted_indices_left[i].elements = (float*)malloc( (left_size+1) *sizeof(float) );
+            sorted_indices_left[i].elements = (unsigned int*)malloc( left_size * sizeof(unsigned int) );
 
             sorted_indices_right[i].width = right_size;
             sorted_indices_right[i].dim = 1;
-            sorted_indices_right[i].elements = (float*)malloc( (right_size+1) * sizeof(float) );
+            sorted_indices_right[i].elements = (unsigned int*)malloc( right_size * sizeof(unsigned int) );
+
+            float deviation_left;
+            float deviation_right;
+
 
             if( i == current_dim ){
-                splitPointArray( sorted_indices[i], sorted_indices_left[i], sorted_indices_right[i]);
+                 splitPointArray<unsigned int>( sorted_indices[i], sorted_indices_left[i], sorted_indices_right[i]);
+                 
+
+                 deviation_left = fabs(V.elements[sorted_indices_left[i].elements[left_size - 1] * V.dim + i ]
+                                    - V.elements[sorted_indices_left[i].elements[0] * V.dim + i ]   );
+                 deviation_right = fabs( V.elements[ sorted_indices_right[i].elements[right_size - 1]  * V.dim + i ]
+                                    - V.elements[sorted_indices_right[i].elements[0]  * V.dim + i] );
+
             } else {
-                splitPointArrayWithValue(V, sorted_indices[i], sorted_indices_left[i], sorted_indices_right[i], current_dim, split_value);
+                splitPointArrayWithValue<float,unsigned int>(V, sorted_indices[i], sorted_indices_left[i], sorted_indices_right[i], 
+                        current_dim, split_value, 
+                        deviation_left, deviation_right, i,
+                        critical_indices_left, critical_indices_right);
             }
 
+            if(deviation_left > biggest_deviation_left )
+            {
+                biggest_deviation_left = deviation_left;
+                next_dim_left = i;
+            }
+
+            if(deviation_right > biggest_deviation_right )
+            {
+                biggest_deviation_right = deviation_right;
+                next_dim_right = i;
+            }
         }
 
-        //threadeeen
-        int next_dim = (current_dim+1)%max_dim;
-        
-        // thread pool when split
-        // on depth 2 you can use 8 threads
+        //int next_dim = (current_dim+1)%max_dim;
+
         if(current_depth == st_depth_threads )
         {
-            pool->push(generateKdTreeRecursive, V, sorted_indices_left, next_dim, max_dim, kd_tree, size, max_tree_depth, left, current_depth + 1);
-            pool->push(generateKdTreeRecursive, V, sorted_indices_right, next_dim, max_dim, kd_tree, size, max_tree_depth, right, current_depth +1);
+            pool->push(generateKdTreeRecursive, V, sorted_indices_left, next_dim_left, max_dim, values, splits, size, max_tree_depth, left, current_depth + 1);
+            pool->push(generateKdTreeRecursive, V, sorted_indices_right, next_dim_right, max_dim, values, splits, size, max_tree_depth, right, current_depth +1);
         } else {
-            generateKdTreeRecursive(0, V, sorted_indices_left, (current_dim+1)%max_dim, max_dim, kd_tree, size, max_tree_depth, left, current_depth + 1);
-            generateKdTreeRecursive(0, V, sorted_indices_right, (current_dim+1)%max_dim, max_dim, kd_tree, size, max_tree_depth, right, current_depth +1);
+            //std::cout<< "left " << current_dim << std::endl;
+            generateKdTreeRecursive(0, V, sorted_indices_left, next_dim_left, max_dim, values, splits, size, max_tree_depth, left, current_depth + 1);
+            //std::cout << "right " << current_dim << std::endl;
+            generateKdTreeRecursive(0, V, sorted_indices_right, next_dim_right, max_dim, values, splits, size, max_tree_depth, right, current_depth +1);
         }
 
     }
@@ -142,123 +250,8 @@ void LBKdTree::generateKdTreeRecursive(int id, LBPointArray& V, LBPointArray sor
     for(int i=0; i<max_dim; i++) {
         free(sorted_indices[i].elements );
     }
+    free(sorted_indices);
 
 }
 
-
-void LBKdTree::sortByDim(LBPointArray& V, int dim, LBPointArray& indices, LBPointArray& values) {
-
-    naturalMergeSort(V, dim, indices, values);
-
-}
-
-void LBKdTree::naturalMergeSort(LBPointArray& in, int dim, LBPointArray& indices, LBPointArray& m, int limit) {
-
-    copyDimensionToPointArray(in, dim, m);
-
-    int m_elements = m.width * m.dim;
-
-    int slide_buffer_size = int(m_elements-0.5);
-    int* slide_buffer = (int*) malloc(slide_buffer_size * sizeof(int));
-
-
-    //create RUNS
-    int num_slides = 1;
-    slide_buffer[0] = 0;
-    for(int i=1; i < slide_buffer_size+1; i++)
-    {
-        if(m.elements[i] < m.elements[i-1])
-        {
-            slide_buffer[num_slides] = i;
-            num_slides++;
-        }
-
-    }
-    slide_buffer[num_slides] = m_elements;
-    slide_buffer_size = num_slides+1;
-
-
-    //sort
-    int count = 0;
-    int current_limit = -1;
-    while(num_slides > 1)
-    {
-        if(num_slides > 2){
-            current_limit = limit;
-        }
-
-        int i;
-
-        for(i=2;i<int(num_slides+1);i+=2)
-        {
-
-            mergeHostWithIndices(m.elements, indices.elements , slide_buffer[i-2], slide_buffer[i-1]-1, slide_buffer[i-1], slide_buffer[i]-1, current_limit);
-
-
-            slide_buffer[i/2]= slide_buffer[i];
-        }
-
-        if(num_slides%2 == 1){
-            slide_buffer[(num_slides+1)/2] = slide_buffer[num_slides];
-        }
-
-        count ++;
-        num_slides = int(num_slides/2.0+0.5);
-
-    }
-
-    free(slide_buffer);
-}
-
-void LBKdTree::mergeHostWithIndices(float* a, float* b, int i1, int j1, int i2, int j2, int limit) {
-
-    int limit_end = limit;
-
-    float* temp = (float*) malloc((j2-i1+1) * sizeof(float));  //array used for merging
-    int* temp_indices = (int*) malloc((j2-i1+1) * sizeof(int));  //array used for merging
-
-    int i,j,k;
-    i=i1;    //beginning of the first list
-    j=i2;    //beginning of the second list
-    k=0;
-
-    int counter = 0;
-
-    while( i<=j1 && j<=j2 && limit!=0 )    //while elements in both lists
-    {
-        counter ++;
-        limit--;
-        if(a[i]<a[j]){
-            temp_indices[k] = b[i];
-            temp[k++]=a[i++];
-
-        }else{
-            temp_indices[k] = b[j];
-            temp[k++]=a[j++];
-        }
-    }
-
-    while(i <= j1 && limit != 0) //copy remaining elements of the first list
-    {
-        temp_indices[k] = b[i];
-        temp[k++]=a[i++];
-    }
-
-    while(j <= j2 && limit!=0 ) {   //copy remaining elements of the second list
-        temp_indices[k] = b[j];
-        temp[k++]=a[j++];
-    }
-
-    //Transfer elements from temp[] back to a[]
-    for(i=i1,j=0;i<=j2 && limit_end!=0 ;i++,j++,limit_end--)
-    {
-        b[i] = temp_indices[j];
-        if(b[i] < 0){
-            printf("THERE IS SOMETHING WRONG\n");
-        }
-        a[i] = temp[j];
-    }
-
-    free(temp_indices);
-    free(temp);
-}
+} /* namespace lvr */
