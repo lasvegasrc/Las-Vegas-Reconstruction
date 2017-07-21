@@ -29,11 +29,9 @@
 
 //#include <opencv2/highgui/highgui.hpp>
 #include <opencv/cv.h>
-#if CV_MAJOR_VERSION >= 2 && CV_MINOR_VERSION >= 4
 #ifdef LVR_USE_CV_NONFREE
-  #include <opencv2/nonfree/features2d.hpp>
-  #include <opencv2/legacy/legacy.hpp>
-#endif
+  #include <opencv2/features2d.hpp>
+  #include <opencv2/xfeatures2d.hpp>
 #endif
 
 namespace lvr {
@@ -92,9 +90,9 @@ Transform::Transform(const cv::Mat &t1, const cv::Mat &t2)
 #ifdef LVR_USE_CV_NONFREE
 
 	//calculate surf features
-	cv::SurfFeatureDetector* detector = new cv::SurfFeatureDetector(100);
+	cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create(100);
 //	cv::Ptr<cv::FeatureDetector> detector(new cv::DynamicAdaptedFeatureDetector (new cv::SurfAdjuster(), 100, 110, 10));
-	cv::SurfDescriptorExtractor extractor;
+	cv::Ptr<cv::xfeatures2d::SURF> extractor = cv::xfeatures2d::SURF::create();
 
 	std::vector<cv::KeyPoint> keyPoints1;
 	cv::Mat descriptors1;
@@ -103,11 +101,11 @@ Transform::Transform(const cv::Mat &t1, const cv::Mat &t2)
 
 	//calculate SURF features for the first image
 	detector->detect( t1, keyPoints1 );
-	extractor.compute( t1, keyPoints1, descriptors1 );
+	extractor->compute( t1, keyPoints1, descriptors1 );
 
 	//calculate SURF features for the second image
 	detector->detect( t2, keyPoints2 );
-	extractor.compute( t2, keyPoints2, descriptors2 );
+	extractor->compute( t2, keyPoints2, descriptors2 );
 
 	//calculate rotation, translation and scaling
 	calcTransform(t1, t2, keyPoints1, keyPoints2, descriptors1, descriptors2);
@@ -135,10 +133,10 @@ void Transform::calcTransform(const cv::Mat &t1, const cv::Mat &t2, std::vector<
 	if (kp1.size() > 2 && kp2.size() > 2)
 	{
 		//calculate matching
-		cv::BruteForceMatcher<cv::L2<float> > matcher;
+		cv::Ptr<cv::BFMatcher> matcher = cv::BFMatcher::create();
 //		cv::FlannBasedMatcher matcher;
 		std::vector< cv::DMatch > matches;
-		matcher.match( desc1, desc2, matches);
+		matcher->match( desc1, desc2, matches);
 
 		//search best match
 		double minDist = FLT_MAX;

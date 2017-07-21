@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(LAS_VEGAS)
-
-set_property(GLOBAL PROPERTY USE_FOLDERS On) 
+cmake_policy(SET CMP0053 OLD) # suppress warnings
+set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
 include(GNUInstallDirs)
 
@@ -25,7 +25,7 @@ else(MSVC)
   add_compile_options(-fmessage-length=0 -fPIC -Wno-deprecated)
   # with cmake 3.3
   #add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=c++0x>)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  set(CMAKE_CXX_STANDARD 11)
 endif(MSVC)
 
 ###############################################################
@@ -41,9 +41,9 @@ find_package(CUDA 8.0)
 ####
 ## Searching for OpenCV
 ##############################
-find_package( OpenCV 2.4.8 REQUIRED )
+find_package( OpenCV 3.0 REQUIRED )
 
-option(WITH_CV_NONFREE "Use OpenCV non-free descriptors" OFF)
+option(WITH_CV_NONFREE "Use OpenCV non-free descriptors" ON)
 if(WITH_CV_NONFREE)
   message(STATUS "Using OpenCV non-free module")
   list(APPEND LVR_DEFINITIONS -DLVR_USE_CV_NONFREE)
@@ -81,6 +81,7 @@ endif(MPI_FOUND)
 ####
 ## Searching for VTK
 ##############################
+set(VTK_QT_VERSION 5)
 find_package(VTK REQUIRED)
 if(VTK_MAJOR_VERSION VERSION_LESS "6")
   list(APPEND LVR_DEFINITIONS -DLVR_USE_VTK5)
@@ -261,15 +262,15 @@ add_definitions(${LVR_DEFINITIONS})
 ##############################################################
 option(WITH_KINFU "Compile LVR Kinfu" OFF)
 
-# Check and set CUDA host compiler flags. CUDA 6.5 is only 
-# compatible to gcc4.8. Older CUDA versions require GCC lower 
+# Check and set CUDA host compiler flags. CUDA 6.5 is only
+# compatible to gcc4.8. Older CUDA versions require GCC lower
 # than 4.8
 
 if(WITH_KINFU AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CUDA_VERSION VERSION_LESS 7)
     if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.8 )
         message(STATUS "******************************************************************")
         message(STATUS "* Your gcc version needs to be lower than 4.9 to compile the LVR *")
-        message(STATUS "* KinectFusion library and apps with CUDA 6.5 or less. Please    *") 
+        message(STATUS "* KinectFusion library and apps with CUDA 6.5 or less. Please    *")
         message(STATUS "* install gcc 4.8 and set the CUDA host compiler accordingly     *")
         message(STATUS "* by setting the CUDA_HOST_COMPILER to gcc4.8. This can be done  *")
         message(STATUS "* in your cmake gui program or by manually calling e.g.          *")
@@ -279,7 +280,7 @@ if(WITH_KINFU AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CUDA_VERSION VER
     endif()
 endif()
 
-if(CUDA_FOUND AND "${OpenCV_VERSION_PATCH}" VERSION_GREATER "8" AND WITH_KINFU)
+if(CUDA_FOUND AND WITH_KINFU)
     message(STATUS "Building LVR KinFu.")
     add_subdirectory(ext/kintinuous)
     include_directories(${LAS_VEGAS_SOURCE_DIR}/ext/kintinuous/kfusion/include)
@@ -297,11 +298,11 @@ endif()
 if(APPLE AND (NOT OPENMP_FOUND))
         message(STATUS "******************************************************************")
         message(STATUS "* It seems you are trying to comile on OSX with an compiler that *")
-        message(STATUS "* does not support OpenMP. To get maximum performance consider   *") 
+        message(STATUS "* does not support OpenMP. To get maximum performance consider   *")
         message(STATUS "* installing clang-omp from homebrew (brew install clang-omp) and*")
         message(STATUS "* configure with 'cmake -DWITH_CLANG_OMP ..'                     *")
         message(STATUS "******************************************************************")
-       
+
 	option(WITH_CLANG_OMP "Compile with clang-omp")
 
 	if(WITH_CLANG_OMP)
@@ -310,7 +311,7 @@ if(APPLE AND (NOT OPENMP_FOUND))
       list(APPEND LVR_DEFINITIONS -DLVR_USE_OPEN_MP)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 	endif()
-	
+
 endif()
 
 ##############################################################
@@ -323,7 +324,7 @@ list(APPEND LVR_INSTALL_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INC
 
 ##############################################################
 # VTK use file include. Has to be called after all CUDA code
-# was generated and compiled. The VTK definitions corrupt the 
+# was generated and compiled. The VTK definitions corrupt the
 # nvcc call
 ##############################################################
 
@@ -333,16 +334,8 @@ include(${VTK_USE_FILE})
 # VIEWERS
 ##############################################################
 
-set( QT_USE_QTOPENGL TRUE )
-set( QT_USE_XML TRUE)
-find_package( Qt4 )
-if(QT4_FOUND)
-  include_directories(${QT_INCLUDE_DIR})
-  include_directories(${QT_QTGUI_INCLUDE_DIR})
-  include_directories(${QT_QTOPENGL_INCLUDE_DIR})
-  include_directories(${QT_QTCORE_INCLUDE_DIR})
-  include_directories(${QT_QTXML_INCLUDE_DIR})
-
+find_package(Qt5 COMPONENTS Core Widgets Xml OpenGL)
+if(Qt5_FOUND)
   # Try to find libQGLViewer
   find_library(QGLVIEWER_LIBRARY_RELEASE
       NAMES qglviewer-qt4 qglviewer QGLViewer QGLViewer2 libQGLViewer-qt4 QGLViewer-qt4 
@@ -359,7 +352,7 @@ if(QT4_FOUND)
     include_directories(${QVTK_INCLUDE_DIR})
     add_subdirectory(src/tools/viewer)
   endif(QVTK_FOUND)
-endif(QT4_FOUND)
+endif(Qt5_FOUND)
 
 ##############################################################
 # LIBRARIES

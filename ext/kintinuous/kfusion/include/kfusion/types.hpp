@@ -3,7 +3,7 @@
 #include <kfusion/cuda/device_array.hpp>
 #include <kfusion/Options.hpp>
 #include <opencv2/core/core.hpp>
-#include <opencv2/contrib/contrib.hpp>
+//#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/core/affine.hpp>
 #include <opencv2/viz/vizcore.hpp>
 #include <iosfwd>

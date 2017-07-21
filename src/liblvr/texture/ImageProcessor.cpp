@@ -27,11 +27,9 @@
 #include <lvr/texture/ImageProcessor.hpp>
 #include <opencv/cv.h>
 // #include <opencv2/highgui/highgui.hpp>
-#if CV_MAJOR_VERSION >= 2 && CV_MINOR_VERSION >= 4
 #ifdef LVR_USE_CV_NONFREE
-  #include <opencv2/nonfree/features2d.hpp>
-  #include <opencv2/legacy/legacy.hpp>
-#endif
+  #include <opencv2/features2d.hpp>
+  #include <opencv2/xfeatures2d.hpp>	
 #endif
 
 namespace lvr {
@@ -217,16 +215,16 @@ void ImageProcessor::calcSURF(Texture* tex)
 		cv::cvtColor(img1, img1, CV_RGB2GRAY);
 		
 		//initialize SURF objects
-		cv::SurfFeatureDetector* detector = new cv::SurfFeatureDetector(100);
+		cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create(100);
 //		cv::Ptr<cv::FeatureDetector> detector(new cv::DynamicAdaptedFeatureDetector (new cv::SurfAdjuster(), 100, 110, 30));
-		cv::SurfDescriptorExtractor extractor;
+		cv::Ptr<cv::xfeatures2d::SURF> extractor = cv::xfeatures2d::SURF::create();
 
 		std::vector<cv::KeyPoint> keyPoints;
 		cv::Mat descriptors;
 
 		//calculate SURF features for the image
 		detector->detect( img1, keyPoints );
-		extractor.compute( img1, keyPoints, descriptors );
+		extractor->compute( img1, keyPoints, descriptors );
 
 		//return the results
 		tex->m_numFeatures 		= descriptors.rows;
@@ -294,10 +292,11 @@ float ImageProcessor::compareTexturesSURF(Texture* tex1, Texture* tex2)
 		result = 0;
 
 		//calculate matching
-		cv::BruteForceMatcher<cv::L2<float> > matcher;
+		//cv::BruteForceMatcher<cv::L2<float> > matcher;
+		cv::Ptr<cv::BFMatcher> matcher = cv::BFMatcher::create();
 		//cv::FlannBasedMatcher matcher;
 		std::vector< cv::DMatch > matches;
-		matcher.match( descriptors1, descriptors2, matches);
+		matcher->match( descriptors1, descriptors2, matches);
 
 		//search best match
 		double minDist = 100;

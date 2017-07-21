@@ -1,6 +1,6 @@
 include_directories(src include) 
 
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ftz=true;--prec-div=false;--prec-sqrt=false")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ftz=true;--prec-div=false;--prec-sqrt=false;-Xcompiler -fPIC")
 #add_module_library(kfusion)
 
 set(KFUSION_SRC 
@@ -81,4 +81,3 @@ set_target_properties(lvr_kinfu PROPERTIES
 install(TARGETS lvr_kinfu RUNTIME DESTINATION bin COMPONENT main)
 install(FILES ${srcs} DESTINATION app COMPONENT main)
 endif()
-

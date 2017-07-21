@@ -20,6 +20,7 @@ set(LVR_CUDA_NORMAL_DEPS
 	${OPENGL_LIBRARIES}
 	${GLUT_LIBRARIES}
 	${OpenCV_LIBS}
+    ${NABO_LIBRARY}
 	)
 
 #####################################################################################

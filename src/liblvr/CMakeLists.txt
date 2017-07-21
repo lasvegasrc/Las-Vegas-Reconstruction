@@ -127,6 +127,7 @@ if(CUDA_FOUND)
 set(LVR_CUDA_SRC
   reconstruction/cuda/CudaSurface.cu
 )
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -Xcompiler -fPIC")
 
 # Fix broken VTK flags
 get_directory_property(dir_defs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
