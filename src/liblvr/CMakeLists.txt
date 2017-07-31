@@ -82,7 +82,8 @@ set(LVR_LIB_DEPENDENCIES
     ${OPENGL_LIBRARIES}
     ${GLUT_LIBRARIES}
     ${OpenCV_LIBS}
-    ${GSL_LIBRARIES})
+    ${GSL_LIBRARIES}
+    ${LZ4_LIBRARY} )
 
 #####################################################################################
 # On Unix/Linux we need to link against pthreads
@@ -149,11 +150,12 @@ target_link_libraries(lvrcuda_static lvr_static)
 # Add dependency to avoid that both targets
 # are build concurrently in parallel builds
 add_dependencies(lvrcuda_static lvr_static) 
-
 message(STATUS "Building shared LVR CUDA library")
 cuda_add_library(lvrcuda SHARED ${LVR_CUDA_SRC})
+target_link_libraries(lvrcuda lvr)
 
-install(TARGETS lvrcuda_static lvrcuda 
+install(
+  TARGETS lvrcuda_static lvrcuda 
   EXPORT lvrTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
