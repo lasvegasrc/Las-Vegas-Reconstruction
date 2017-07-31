@@ -72,7 +72,8 @@ void MeshUpdateThread::computeMeshActor(HMesh* meshbuffer)
         	m_vertices.push_back(vertex->m_position[2]);
 
         	unsigned char color[3] = {0, 255, 0};
-        	scalars->InsertNextTupleValue(color);
+        	scalars->InsertNextTypedTuple(color);
+            
 
         }
 

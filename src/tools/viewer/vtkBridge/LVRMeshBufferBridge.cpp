@@ -148,7 +148,7 @@ void LVRMeshBufferBridge::computeMeshActor(MeshBufferPtr meshbuffer)
         		color[0] = colors[index];
         		color[1] = colors[index + 1];
         		color[2] = colors[index + 2];
-        		scalars->InsertNextTupleValue(color);
+        		scalars->InsertNextTypedTuple(color);
         	}
         }
 
@@ -636,7 +636,7 @@ vtkSmartPointer<vtkActor> LVRMeshBufferBridge::getColorMeshActor(vector<Material
     	color[1] = colors[i][1];
     	color[2] = colors[i][2];
 
-    	scalars->InsertNextTupleValue(color);
+    	scalars->InsertNextTypedTuple(color);
 
         size_t index = 3 * i;
         vtkSmartPointer<vtkTriangle> t = vtkSmartPointer<vtkTriangle>::New();

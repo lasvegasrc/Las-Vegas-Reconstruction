@@ -42,7 +42,6 @@ using namespace boost::program_options;
 namespace kaboom
 {
 
-
 /**
  * @brief A class to parse the program options for the reconstruction
  * 		  executable.

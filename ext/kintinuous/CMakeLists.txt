@@ -33,7 +33,7 @@ list(APPEND CUDA_NVCC_FLAGS "-gencode;arch=compute_30,code=sm_30;-gencode;arch=c
 # CHECK FOR OPENCV VIZ MODULE
 ##############################################################
 
-find_package(OpenCV 2.4.8 COMPONENTS core viz highgui imgproc features2d nonfree)
+find_package(OpenCV 3.0 COMPONENTS core viz highgui imgproc features2d xfeatures2d)
 if(NOT OPENCV_VIZ_FOUND)
 message("WARNING: Could not find OpenCV viz module. Kinfu App will not be built.")
 else()
