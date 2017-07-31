@@ -1055,3 +1055,12 @@ src/tools/viewer/widgets/LVRTextureMeshItem.cpp
 src/tools/viewer/widgets/LVRTextureMeshItem.hpp
 src/tools/viewer/widgets/LVRTransformationDialog.cpp
 src/tools/viewer/widgets/LVRTransformationDialog.hpp
+ext/kintinuous/kfusion/src/app/LVR_KinFu.cpp
+ext/kintinuous/kfusion/src/app/KinFuApp.hpp
+src/liblvr/reconstruction/LBKdTree.cpp
+src/liblvr/reconstruction/ModelToImage.cpp
+src/liblvr/reconstruction/PanoramaNormals.cpp
+src/liblvr/reconstruction/PCLFiltering.cpp
+src/liblvr/reconstruction/Projection.cpp
+src/liblvr/reconstruction/cuda/CudaSurface.cu
+include/lvr/reconstruction/cuda/CudaSurface.hpp
