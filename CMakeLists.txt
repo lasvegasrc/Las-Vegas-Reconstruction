@@ -37,6 +37,29 @@ endif(MSVC)
 ##############################
 find_package(CUDA 8.0)
 
+if(CUDA_FOUND)
+# Check and set CUDA host compiler flags. CUDA 6.5 is only
+# compatible to gcc4.8. Older CUDA versions require GCC lower
+# than 4.8
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6 )
+        message(STATUS "******************************************************************")
+        message(STATUS "* You g++ 5 to compile the LVR CUDA features. Please install     *")
+        message(STATUS "* gcc 5. We will now set the host compiler to /usr/bin/g++-5.    *")
+        message(STATUS "* If that does not work, install g++-5. If that doesn't help set *")
+        message(STATUS "* the CUDA host compiler to a supported compiler verion with     *")
+        message(STATUS "* 'cmake -DCUDA_MANUAL_HOST_COMPILER=/path/to/your/compiler ..'  *")
+        message(STATUS "******************************************************************")
+        if(CUDA_MANUAL_HOST_COMPILER)
+            set(CUDA_HOST_COMPILER ${CUDA_MANUAL_HOST_COMPILER})
+        else()
+            set(CUDA_HOST_COMPILER "/usr/bin/g++-5")
+        endif()
+        message(STATUS "Using CUDA host compiler ${CUDA_HOST_COMPILER}")
+    endif()
+endif()
+endif()
 
 ####
 ## Searching for OpenCV
@@ -266,23 +289,7 @@ add_definitions(${LVR_DEFINITIONS})
 ##############################################################
 option(WITH_KINFU "Compile LVR Kinfu" OFF)
 
-# Check and set CUDA host compiler flags. CUDA 6.5 is only 
-# compatible to gcc4.8. Older CUDA versions require GCC lower 
-# than 4.8
 
-if(WITH_KINFU AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CUDA_VERSION VERSION_LESS 7)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.8 )
-        message(STATUS "******************************************************************")
-        message(STATUS "* Your gcc version needs to be lower than 4.9 to compile the LVR *")
-        message(STATUS "* KinectFusion library and apps with CUDA 6.5 or less. Please    *") 
-        message(STATUS "* install gcc 4.8 and set the CUDA host compiler accordingly     *")
-        message(STATUS "* by setting the CUDA_HOST_COMPILER to gcc4.8. This can be done  *")
-        message(STATUS "* in your cmake gui program or by manually calling e.g.          *")
-        message(STATUS "* 'cmake <SOURCE_DIR> -DCUDA_HOST_COMPILER=/usr/bin/gcc-4.8'     *")
-        message(STATUS "******************************************************************")
-        message(WARNING "Incompatible CUDA host compiler detected. Fix it manually.")
-    endif()
-endif()
 
 if(CUDA_FOUND AND "${OpenCV_VERSION_PATCH}" VERSION_GREATER "8" AND WITH_KINFU)
     message(STATUS "Building LVR KinFu.")
@@ -358,7 +365,6 @@ if(Qt5_FOUND)
     message(STATUS "Building qglviewer application")
     add_subdirectory(src/qglviewer)
   endif(QGLVIEWER_LIBRARY_RELEASE)
-  message("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
   #find_package(QVTK)
   #if(QVTK_FOUND)
   #  include_directories(${QVTK_INCLUDE_DIR})
