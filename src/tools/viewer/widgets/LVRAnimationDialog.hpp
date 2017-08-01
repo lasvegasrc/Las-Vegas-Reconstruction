@@ -13,7 +13,8 @@
 #include <vtkWindowToImageFilter.h>
 
 #include <QtGui>
-#include "LVRAnimationDialogUI.h"
+#include <QTreeWidget>
+#include "ui_LVRAnimationDialogUI.h"
 #include "LVRRecordedFrameItem.hpp"
 
 using Ui::AnimationDialog;

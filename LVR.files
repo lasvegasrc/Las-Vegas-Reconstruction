@@ -1064,3 +1064,4 @@ src/liblvr/reconstruction/PCLFiltering.cpp
 src/liblvr/reconstruction/Projection.cpp
 src/liblvr/reconstruction/cuda/CudaSurface.cu
 include/lvr/reconstruction/cuda/CudaSurface.hpp
+src/tools/viewer/CMakeLists.txt

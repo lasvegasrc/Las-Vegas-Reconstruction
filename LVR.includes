@@ -41,3 +41,4 @@ src/tools/cuda_normals
 ext/kintinuous/kfusion/src/app
 src/liblvr/reconstruction/cuda
 include/lvr/reconstruction/cuda
+src/tools/viewer

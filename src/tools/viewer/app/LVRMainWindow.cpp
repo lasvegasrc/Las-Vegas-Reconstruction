@@ -26,6 +26,7 @@
 #include <QFileInfo>
 #include <QAbstractItemView>
 #include <QtGui>
+#include <QFileDialog>
 
 #include "LVRMainWindow.hpp"
 

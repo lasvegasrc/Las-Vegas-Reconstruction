@@ -100,9 +100,10 @@ endif()
 # Generate mocs, ui and resource headers
 #####################################################################################
 
-qt_wrap_cpp(lvr_viewer LVR_VIEWER_MOC_SRC ${LVR_VIEWER_MOCS})
-qt_wrap_ui(lvr_viewer LVR_VIEWER_UI_HDRS LVR_VIEWER_UI_SRC ${LVR_VIEWER_UIS})
-qt4_add_resources(LVR_VIEWER_RES ${LVR_VIEWER_RESOURCES})
+set(CMAKE_AUTOMOC ON)
+
+qt5_wrap_ui(LVR_VIEWER_UI_HDRS ${LVR_VIEWER_UIS})
+qt5_add_resources(LVR_VIEWER_RES ${LVR_VIEWER_RESOURCES})
 
 add_definitions(${QT_DEFINITIONS})
 
@@ -122,16 +123,13 @@ set(LVR_VIEWER_DEPENDENCIES
 	lvrlas_static
 	lvrslam6d_static
 	${OpenCV_LIBS}
-	${QT_QTCORE_LIBRARIES}
-	${QT_QTGUI_LIBRARIES}
-	${QT_QTOPENGL_LIBRARIES}
-	${QT_QTXML_LIBRARY}
+    ${Qt5Widgets_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${GLUT_LIBRARIES}
 	${Boost_FILESYSTEM_LIBRARY}
-        ${Boost_SYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
 	${Boost_THREAD_LIBRARY}
-        ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
 	${QVTK_LIBRARY}
 	${VTK_LIBRARIES}
 	${PCL_LIBRARIES}
@@ -149,7 +147,11 @@ endif( ${NABO_FOUND} )
 # Add main executable
 #####################################################################################
 
-add_executable(lvr_viewer ${LVR_VIEWER_SOURCES} ${LVR_VIEWER_RES} ${LVR_VIEWER_MOC_SRC} ${LVR_VIEWER_UI_HDRS})
+add_executable(lvr_viewer
+    ${LVR_VIEWER_SOURCES}
+    ${LVR_VIEWER_RES}
+    ${LVR_VIEWER_MOCS}
+    ${LVR_VIEWER_UI_HDRS})
 target_link_libraries(lvr_viewer ${LVR_VIEWER_DEPENDENCIES})
 
 install(TARGETS lvr_viewer
