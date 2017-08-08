@@ -6,12 +6,58 @@
 #include <lvr/io/ModelFactory.hpp>
 #include <lvr/io/Timestamp.hpp>
 #include <lvr/io/IOUtils.hpp>
+#include <fstream>
+#include <string>
 #include "Options.hpp"
 
 
 using namespace lvr;
 
 typedef ColorVertex<double, unsigned char> cvertex;
+
+void savePly(std::vector<std::vector<cvertex>* >& points, unsigned int number=0 )
+{
+    unsigned int num_points = 0;
+    for(unsigned int i=0; i< points.size(); i++)
+    {
+        num_points += points[i]->size();
+    }
+
+    std::string filename = std::string("debug") + std::to_string(number) + std::string(".ply");
+
+    std::cout << "Writing " << num_points << " to " << filename << std::endl;
+
+    ofstream myfile;
+    
+    
+    myfile.open(filename.c_str());
+    myfile << "ply" << std::endl;
+    myfile << "format ascii 1.0" << std::endl;
+    myfile << "element vertex " << num_points << std::endl;
+    myfile << "property float32 x" << std::endl;
+    myfile << "property float32 y" << std::endl;
+    myfile << "property float32 z" << std::endl;
+    myfile << "property uchar red" << std::endl;                   
+    myfile << "property uchar green" << std::endl;
+    myfile << "property uchar blue" << std::endl;
+    myfile << "end_header" << std::endl;
+
+    for(unsigned int i=0; i<points.size(); i++)
+    {
+        for(unsigned int j=0; j<points[i]->size(); j++)
+        {
+            myfile << (*points[i])[j][0] << " " 
+                   << (*points[i])[j][1] << " " 
+                   << (*points[i])[j][2] << " "
+                   << (i * 255) / points.size() << " "
+                   << 0 << " "
+                   << 0 << std::endl;
+        }
+    }
+
+    myfile.close();
+
+}
 
 void addPointFile(OverlappingKdTree<cvertex>& OlTree, string filename, overlapping_test::Options& opt, PointBufferPtr& buffer)
 {
@@ -39,13 +85,31 @@ void addPointFile(OverlappingKdTree<cvertex>& OlTree, string filename, overlappi
         OlTree.insert(in_point);
     }
     std::cout << "calculate Overlaps" << std::endl;
-    double overlap_dist = 15;
+    double overlap_dist = 0.3;
     OlTree.calculateOverlaps(overlap_dist);
     OlTree.finishConstruction();
 
     OlTree.printKdTreeLeafs();
 
     std::cout << "Number of leafs: " << OlTree.getNumLeafs() << std::endl;
+
+    std::vector<std::vector<std::vector< cvertex>* > > splitted_points;
+    splitted_points = OlTree.getSplittedPoints();
+
+    std::cout << std::endl;
+    std::cout << "Splitted Points:" << std::endl;
+    bool debug = false;
+    for(unsigned int i=0; i<splitted_points.size(); i++)
+    {
+        // debug
+        savePly(splitted_points[i], i);
+        
+        std::cout << " " << i << std::endl;
+        for(unsigned int j=0; j<splitted_points[i].size(); j++)
+        {
+            std::cout << "  " << j << ": " << splitted_points[i][j]->size() << std::endl;
+        }
+    }
 }
 
 int main(int argc, char** argv){
@@ -55,7 +119,7 @@ int main(int argc, char** argv){
     cout << opt << endl;
 
     
-    unsigned int max_leaf_size = 200000;
+    unsigned int max_leaf_size = 6000000;
     OverlappingKdTree<cvertex> OlTree(max_leaf_size);
 
 

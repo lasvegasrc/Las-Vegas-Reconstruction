@@ -90,11 +90,11 @@ unsigned int OverlappingNode<VertexT>::getSplitDimension()
 // Leaf Functions
 
 template<typename VertexT>
-std::vector<VertexT>& OverlappingNode<VertexT>::getOverlap(unsigned int lap_id)
+std::vector<VertexT>* OverlappingNode<VertexT>::getOverlap(unsigned int lap_id)
 {
     if( m_overlaps.size() > lap_id )
     {
-        return m_overlaps[lap_id];
+        return &(m_overlaps[lap_id]);
     }
 }
 
@@ -174,23 +174,50 @@ unsigned int OverlappingNode<VertexT>::getLongestSideDim()
 template<typename VertexT>
 void OverlappingNode<VertexT>::split()
 {
+    std::cout << std::endl;
     std::cout << "We have to SPLIT" << std::endl;
+    std::cout << m_bounding_box << std::endl;
+    
+    if(!m_bounding_box.isValid())
+    {
+        std::cout << "WARNING" << std::endl;
+    }
+    
     // point size too big
     // split points along longest bb axis with centroid of bounding box
     m_split_dim = this->getLongestSideDim();
     m_split_value = (m_bounding_box.getCentroid())[m_split_dim];
 
     // create left and right child
+    // LEFT
     m_left = boost::shared_ptr< OverlappingNode<VertexT> >(new OverlappingNode<VertexT>(m_bucket_size) );
-    // m_left->setParent(this);
+    m_left->m_neighbours = m_neighbours;
+    VertexT max;
+    max = m_bounding_box.getMax();
+    max[m_split_dim] = m_split_value;
+    m_left->m_bounding_box = BoundingBox<VertexT>(
+        m_bounding_box.getMin().x, m_bounding_box.getMin().y, m_bounding_box.getMin().z,
+        max.x, max.y, max.z
+    );
+    
+    // RIGHT
     m_right = boost::shared_ptr< OverlappingNode<VertexT> >(new OverlappingNode<VertexT>(m_bucket_size) );
-    // m_right->setParent(this);
+    m_right->m_neighbours = m_neighbours;
+    VertexT min;
+    min = m_bounding_box.getMin();
+    min[m_split_dim] = m_split_value;
+    m_right->m_bounding_box = BoundingBox<VertexT>(
+        min.x, min.y, min.z,
+        m_bounding_box.getMax().x, m_bounding_box.getMax().y, m_bounding_box.getMax().z
+    );
+    
+
+
+    std::cout << "Split in Dimension: "<< m_split_dim << " Value: " << m_split_value << std::endl;
+
 
 
     // split/copy points
-    unsigned int num_left = 0;
-    unsigned int num_right = 0;
-
     for(auto iterator = m_points->begin(); iterator != m_points->end(); ++iterator )
     {
         VertexT point = *iterator;
@@ -198,12 +225,26 @@ void OverlappingNode<VertexT>::split()
         {
             //left
             m_left->insert(point);
-            num_left ++;
         } else {
             //right
             m_right->insert(point);
-            num_right ++;
         }
+    }
+
+
+    // update previous neighbours
+    // updating only the current dim
+
+    if( m_neighbours.find(m_split_dim*2) != m_neighbours.end() )
+    {
+        std::cout << "Update Max Neighbour Neighbour" << std::endl;
+        m_neighbours[m_split_dim*2]->m_neighbours[m_split_dim*2+1] = m_left;
+    }
+
+    if( m_neighbours.find(m_split_dim*2+1) != m_neighbours.end() )
+    {
+        std::cout << "Update Min Neighbour Neighbour" << std::endl;
+        m_neighbours[m_split_dim*2+1]->m_neighbours[m_split_dim*2] = m_right;
     }
 
     // delete points
@@ -212,7 +253,10 @@ void OverlappingNode<VertexT>::split()
 
     // set parent
     m_left->setParent(this);
+    m_left->m_neighbours[m_split_dim*2+1] = m_right;
+
     m_right->setParent(this);
+    m_right->m_neighbours[m_split_dim*2] = m_left;
 
 }
 
@@ -270,27 +314,12 @@ boost::shared_ptr< std::vector<VertexT> > OverlappingNode<VertexT>::getPoints()
 }
 
 template<typename VertexT>
-std::vector< std::vector<VertexT> > OverlappingNode<VertexT>::getNeighboursOverlap()
-{
-    std::vector< std::vector<VertexT> > dest;
-    dest.resize(0);
-    OverlappingNode<VertexT>* it = this;
+std::map<int, std::vector< VertexT> > OverlappingNode<VertexT>::getNeighboursOverlap( )
+{   
+    std::map<int, std::vector< VertexT> > dest;
 
-    if(it->getParent())
-    {
-        OverlappingNode<VertexT>* parent = it->getParent();
-        OverlappingNode<VertexT>* neigbour = it->getNeighbour();
-        
-        unsigned int split_dim = parent->getSplitDim();
-        
-        if(split_dim == 0)
-        {
-            
-        }
-    }
+    OverlappingNode<VertexT>* parent = this->getParent();
 
-    // is there a neighbour in first dim?
-    // min neighbors this node min x = neighbor node max x
 
     return dest;
 }

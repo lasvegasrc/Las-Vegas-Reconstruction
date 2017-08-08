@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <lvr/geometry/BoundingBox.hpp>
+#include <map>
 
 namespace lvr{
 
@@ -13,6 +14,7 @@ template<typename VertexT>
 class OverlappingNode{
     public:
         OverlappingNode(unsigned int bucket_size);
+
 
         // Node functions
 
@@ -43,14 +45,32 @@ class OverlappingNode{
 
         unsigned int getLeafSize();
 
-        
-
-        std::vector< std::vector<VertexT> > getNeighboursOverlap();
+        std::map<int, std::vector< VertexT> > getNeighboursOverlap();
 
         boost::shared_ptr< std::vector<VertexT> > getPoints();
         
-        std::vector<VertexT>& getOverlap(unsigned int lap_id);
+        std::vector<VertexT>* getOverlap(unsigned int lap_id);
 
+
+        // Node is Node
+        boost::shared_ptr<OverlappingNode<VertexT> > m_left;
+        boost::shared_ptr<OverlappingNode<VertexT> > m_right;
+        OverlappingNode<VertexT>* m_parent;
+
+        // Node is Leaf
+        // ALL POINTS
+        boost::shared_ptr< std::vector<VertexT> > m_points;
+
+        // Overlap
+        std::vector< std::vector<VertexT> > m_overlaps;
+
+        // neighbors
+        std::map<unsigned int, boost::shared_ptr<OverlappingNode<VertexT> > > m_neighbours;
+
+        // Bounding Box
+        
+        BoundingBox<VertexT> m_bounding_box;
+                
     private:
 
         OverlappingNode<VertexT>* getNeighbour();
@@ -59,27 +79,15 @@ class OverlappingNode{
 
         unsigned int getLongestSideDim();
 
-        // Node is Node
-        boost::shared_ptr<OverlappingNode<VertexT> > m_left;
-        boost::shared_ptr<OverlappingNode<VertexT> > m_right;
-        OverlappingNode<VertexT>* m_parent;
 
         double m_split_value;
 
-        BoundingBox<VertexT> m_bounding_box;
-        
 
         unsigned int m_bucket_size;
 
         unsigned int m_split_dim;
 
-        // Node is Leaf
-        // ALL POINTS
-        boost::shared_ptr< std::vector<VertexT> > m_points;
 
-        // Overlap
-        std::vector< std::vector<VertexT> > m_overlaps;
-        
 };
 
 } //namespace lvr
