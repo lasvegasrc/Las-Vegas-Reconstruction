@@ -73,6 +73,8 @@ class OverlappingNode{
                 
     private:
 
+        void updateChildNeighbours( boost::shared_ptr<OverlappingNode<VertexT> > node, unsigned int lap_id, boost::shared_ptr<OverlappingNode<VertexT> > neighbour  );
+
         OverlappingNode<VertexT>* getNeighbour();
 
         void split();

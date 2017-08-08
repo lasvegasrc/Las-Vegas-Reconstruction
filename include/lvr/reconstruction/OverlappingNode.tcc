@@ -172,6 +172,19 @@ unsigned int OverlappingNode<VertexT>::getLongestSideDim()
 }
 
 template<typename VertexT>
+void OverlappingNode<VertexT>::updateChildNeighbours( boost::shared_ptr<OverlappingNode<VertexT> > node,
+     unsigned int lap_id, 
+     boost::shared_ptr<OverlappingNode<VertexT> > neighbour  )
+{
+    node->m_neighbours[lap_id] = neighbour;
+    if(!node->isLeaf())
+    {
+        updateChildNeighbours(node->m_left, lap_id, neighbour);
+        updateChildNeighbours(node->m_right, lap_id, neighbour);
+    }
+}
+
+template<typename VertexT>
 void OverlappingNode<VertexT>::split()
 {
     std::cout << std::endl;
@@ -238,13 +251,13 @@ void OverlappingNode<VertexT>::split()
     if( m_neighbours.find(m_split_dim*2) != m_neighbours.end() )
     {
         std::cout << "Update Max Neighbour Neighbour" << std::endl;
-        m_neighbours[m_split_dim*2]->m_neighbours[m_split_dim*2+1] = m_left;
+        updateChildNeighbours(m_neighbours[m_split_dim*2], m_split_dim*2+1, m_left);
     }
 
     if( m_neighbours.find(m_split_dim*2+1) != m_neighbours.end() )
     {
         std::cout << "Update Min Neighbour Neighbour" << std::endl;
-        m_neighbours[m_split_dim*2+1]->m_neighbours[m_split_dim*2] = m_right;
+        updateChildNeighbours(m_neighbours[m_split_dim*2+1], m_split_dim*2, m_right);
     }
 
     // delete points
