@@ -35,7 +35,9 @@ Options::Options(int argc, char** argv) : m_descr("Supported options")
     ("outputFile,o",    value<string>(&m_outputFile)->default_value("normals.ply"), "Output file name.")
     ("overlap,l",    value<float>(&m_overlap)->default_value(0.3), "Overlap size. Default: 0.3")
     ("leafSize,s",    value<unsigned int>(&m_leafsize)->default_value(100000), "Max Leaf Size. Default: 100000")
-    ;
+    ("blob",    value<bool>(&m_blobMode)->default_value(false), "Blob mode")
+    ("nblobs",    value<unsigned int>(&m_nBlobs)->default_value(false), "Blob mode")
+            ;
 
     m_pdescr.add("inputFile", -1);
 

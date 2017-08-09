@@ -73,6 +73,16 @@ public:
 		return (m_variables["overlap"].as<float>());
 	}
 
+    bool blobMode() const
+    {
+        return (m_variables["blob"].as<bool>());
+    }
+
+    unsigned int nBlobs() const
+    {
+        return (m_variables["nblobs"].as<unsigned int>());
+    }
+
 private:
 
 	/// The internally used variable map
@@ -86,6 +96,8 @@ private:
 
     float         m_overlap;
 	unsigned int  m_leafsize;
+    unsigned int  m_nBlobs;
+    bool          m_blobMode;
     string        m_outputFile;
 };
 
