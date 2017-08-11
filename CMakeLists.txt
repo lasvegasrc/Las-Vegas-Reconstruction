@@ -4,7 +4,6 @@ project(LAS_VEGAS)
 set_property(GLOBAL PROPERTY USE_FOLDERS On) 
 
 include(GNUInstallDirs)
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -101,10 +100,10 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 ####
 ## Searching for MPI
 ##############################
-find_package( MPI )
-if(MPI_FOUND)
-  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-endif(MPI_FOUND)
+#find_package( MPI )
+#if(MPI_FOUND)
+#  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+#endif(MPI_FOUND)
 
 ####
 ## Searching for VTK
@@ -128,7 +127,7 @@ endif(NABO_FOUND)
 ## Searching for PCL
 ##############################
 
-find_package(PCL 1.7)
+find_package(PCL 1.8)
 if(PCL_FOUND)
   include_directories(${PCL_INCLUDE_DIRS})
   link_directories(${PCL_LIBRARY_DIRS})
@@ -370,7 +369,7 @@ if(Qt5_FOUND)
   #  include_directories(${QVTK_INCLUDE_DIR})
     add_subdirectory(src/tools/viewer)
  # endif(QVTK_FOUND)
-endif(QT5_FOUND)
+endif(Qt5_FOUND)
 
 ##############################################################
 # LIBRARIES
