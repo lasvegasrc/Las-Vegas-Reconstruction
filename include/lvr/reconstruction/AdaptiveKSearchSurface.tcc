@@ -66,7 +66,7 @@ AdaptiveKSearchSurface<VertexT, NormalT>::AdaptiveKSearchSurface(
    // Init:
 //    srand(time(NULL));
 
-	m_searchTreeName = searchTreeName;
+    m_searchTreeName = searchTreeName;
 
    size_t n_points, n_normals;
    this->m_points = loader->getIndexedPointArray(n_points);

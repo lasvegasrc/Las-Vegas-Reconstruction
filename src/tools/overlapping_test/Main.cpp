@@ -523,7 +523,7 @@ void calculateNormalsCUDA(int n_blobs, int kn, int ki)
     }
     ply_out.close();
 
-
+ls
 }
 
 unsigned int splitPointFile( string filename, overlapping_test::Options& opt, PointBufferPtr& buffer)

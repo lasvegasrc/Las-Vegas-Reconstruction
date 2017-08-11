@@ -167,7 +167,7 @@ find_package( Boost 1.54
     filesystem
     system
     thread
-    serialization
+    serialization5flann13serializati
     mpi
     REQUIRED )
 else()
