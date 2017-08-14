@@ -16,7 +16,6 @@ set(LVR_KDSPLITTER_DEPS
 	lvrlas_static
 	lvrrply_static
 	lvrslam6d_static
-    lvrcuda_static
 	${OPENGL_LIBRARIES}
 	${GLUT_LIBRARIES}
 	${OpenCV_LIBS}
