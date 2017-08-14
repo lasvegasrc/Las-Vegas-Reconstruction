@@ -43,3 +43,4 @@ src/liblvr/reconstruction/cuda
 include/lvr/reconstruction/cuda
 src/tools/viewer
 src/tools/overlapping_test
+src/tools/kdsplitter
