@@ -299,6 +299,7 @@ endif()
 if(CUDA_FOUND)
     cuda_include_directories(ext/CTPL)
     add_subdirectory(src/tools/cuda_normals)
+    add_subdirectory(src/tools/overlapping_test)
 endif()
 
 ##############################################################
@@ -395,7 +396,7 @@ add_subdirectory(src/tools/registration)
 add_subdirectory(src/tools/normals)
 add_subdirectory(src/tools/kaboom)
 add_subdirectory(src/tools/image_normals)
-add_subdirectory(src/tools/overlapping_test)
+
 
 
 if(MPI_FOUND)
