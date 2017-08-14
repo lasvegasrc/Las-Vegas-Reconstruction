@@ -62,10 +62,10 @@ public:
      *  @param kd      The number of neighbour points esed for distance value calculation.
      */
     SearchTreeNabo( PointBufferPtr points,
-            long unsigned int &n_points,
-            const int &kn = 10,
-            const int &ki = 10,
-            const int &kd = 10,
+            size_t &n_points,
+            const size_t &kn = 10,
+            const size_t &ki = 10,
+            const size_t &kd = 10,
             const bool &useRansac = false );
 
 
@@ -83,14 +83,14 @@ public:
      * @param indices     A vector that stores the indices for the neighbours whithin the dataset.
      * @param distances   A vector that sotres the distances for the neighbours that are found.
      */
-    virtual void kSearch( coord < float >& qp, int neighbours, vector< int > &indices, vector< float > &distances );
+    virtual void kSearch( coord < float >& qp, size_t neighbours, vector< size_t > &indices, vector< float > &distances );
 
-    virtual void radiusSearch( float              qp[3], float r, vector< int > &indices );
-    virtual void radiusSearch( VertexT&              qp, float r, vector< int > &indices );
-    virtual void radiusSearch( const VertexT&        qp, float r, vector< int > &indices );
-    virtual void radiusSearch( coord< float >&       qp, float r, vector< int > &indices );
-    virtual void radiusSearch( const coord< float >& qp, float r, vector< int > &indices );
-    virtual void kSearch( VertexT      qp, int k, vector< VertexT > &neighbors ) {};
+    virtual void radiusSearch( float              qp[3], float r, vector< size_t > &indices );
+    virtual void radiusSearch( VertexT&              qp, float r, vector< size_t > &indices );
+    virtual void radiusSearch( const VertexT&        qp, float r, vector< size_t > &indices );
+    virtual void radiusSearch( coord< float >&       qp, float r, vector< size_t > &indices );
+    virtual void radiusSearch( const coord< float >& qp, float r, vector< size_t > &indices );
+    virtual void kSearch( VertexT      qp, size_t k, vector< VertexT > &neighbors ) {};
 protected:
 
     // Store the EigenMatrix containing the points

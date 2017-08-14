@@ -56,9 +56,9 @@ template<typename VertexT, typename NormalT>
 AdaptiveKSearchSurface<VertexT, NormalT>::AdaptiveKSearchSurface(
         PointBufferPtr loader,
         std::string searchTreeName,
-        const int &kn,
-        const int &ki,
-        const int &kd,
+        const size_t &kn,
+        const size_t &ki,
+        const size_t &kd,
         const bool &useRansac,
         string posefile)
 : PointsetSurface<VertexT>( loader )
@@ -237,7 +237,7 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::init()
 template<typename VertexT, typename NormalT>
 void AdaptiveKSearchSurface<VertexT, NormalT>::calculateSurfaceNormals()
 {
-    int k_0 = this->m_kn;
+    size_t k_0 = this->m_kn;
 
     cout << timestamp << "Initializing normal array..." << endl;
 
@@ -251,7 +251,7 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::calculateSurfaceNormals()
     ProgressBar progress(this->m_numPoints, comment);
 
     #pragma omp parallel for schedule(static)
-    for( int i = 0; i < (int)this->m_numPoints; i++){
+    for( size_t i = 0; i < this->m_numPoints; i++){
 
         Vertexf query_point;
         Normalf normal;
@@ -260,10 +260,10 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::calculateSurfaceNormals()
         // correct return values when performing the
         // search on the stann kd tree. So we don't use
         // the template parameter T for di
-        vector<int> id;
+        vector<size_t> id;
         vector<float> di;
 
-        int n = 0;
+        size_t n = 0;
         size_t k = k_0;
 
         while(n < 5){
@@ -389,9 +389,9 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::interpolateSurfaceNormals()
 
     // Interpolate normals
     #pragma omp parallel for schedule(static)
-    for( int i = 0; i < (int)this->m_numPoints; i++){
+    for( size_t i = 0; i < this->m_numPoints; i++){
 
-        vector<int> id;
+        vector<size_t> id;
         vector<float> di;
 
         this->m_searchTree->kSearch(this->m_points[i], this->m_ki, id, di);
@@ -399,7 +399,7 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::interpolateSurfaceNormals()
         VertexT mean;
         NormalT mean_normal;
 
-        for(int j = 0; j < this->m_ki; j++)
+        for(size_t j = 0; j < this->m_ki; j++)
         {
             mean += VertexT(this->m_normals[id[j]][0],
                             this->m_normals[id[j]][1],
@@ -410,7 +410,7 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::interpolateSurfaceNormals()
         tmp[i] = mean;
 
         ///todo Try to remove this code. Should improve the results at all.
-        for(int j = 0; j < this->m_ki; j++)
+        for(size_t j = 0; j < this->m_ki; j++)
         {
             NormalT n(this->m_normals[id[j]][0],
                       this->m_normals[id[j]][1],
@@ -460,7 +460,7 @@ template<typename VertexT, typename NormalT>
 void AdaptiveKSearchSurface<VertexT, NormalT>::getkClosestVertices(const VertexT &v,
         const size_t &k, vector<VertexT> &nb)
 {
-    vector<int> id;
+    vector<size_t> id;
 
     //Allocate ANN point
     {
@@ -502,10 +502,10 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::getkClosestVertices(const VertexT
 
 template<typename VertexT, typename NormalT>
 float AdaptiveKSearchSurface<VertexT, NormalT>::meanDistance(const Plane<VertexT, NormalT> &p,
-        const vector<unsigned long> &id, const int &k)
+        const vector<unsigned long> &id, const size_t &k)
 {
     float sum = 0;
-    for(int i = 0; i < k; i++){
+    for(size_t i = 0; i < k; i++){
         sum += distance(fromID(id[i]), p);
     }
     sum = sum / k;
@@ -521,9 +521,9 @@ float AdaptiveKSearchSurface<VertexT, NormalT>::distance(VertexT v, Plane<Vertex
 template<typename VertexT, typename NormalT>
 void AdaptiveKSearchSurface<VertexT, NormalT>::distance(VertexT v, float &projectedDistance, float &euklideanDistance)
 {
-    int k = this->m_kd;
+    size_t k = this->m_kd;
 
-    vector<int> id;
+    vector<size_t> id;
     vector<float> di;
 
     //Allocate ANN point
@@ -541,7 +541,7 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::distance(VertexT v, float &projec
     VertexT nearest;
     NormalT normal;
 
-    for ( int i = 0; i < k; i++ )
+    for ( size_t i = 0; i < k; i++ )
     {
         //Get nearest tangent plane
         VertexT vq( this->m_points[id[i]][0], this->m_points[id[i]][1], this->m_points[id[i]][2] );
@@ -565,7 +565,7 @@ void AdaptiveKSearchSurface<VertexT, NormalT>::distance(VertexT v, float &projec
 }
 
 template<typename VertexT, typename NormalT>
-VertexT AdaptiveKSearchSurface<VertexT, NormalT>::fromID(int i){
+VertexT AdaptiveKSearchSurface<VertexT, NormalT>::fromID(size_t i){
     return VertexT(
             this->m_points[i][0],
             this->m_points[i][1],
@@ -574,8 +574,8 @@ VertexT AdaptiveKSearchSurface<VertexT, NormalT>::fromID(int i){
 
 template<typename VertexT, typename NormalT>
 Plane<VertexT, NormalT> AdaptiveKSearchSurface<VertexT, NormalT>::calcPlane(const VertexT &queryPoint,
-        const int &k,
-        const vector<int> &id)
+        const size_t &k,
+        const vector<size_t> &id)
 {
     /**
      * @todo Think of a better way to code this magic number.
@@ -593,7 +593,7 @@ Plane<VertexT, NormalT> AdaptiveKSearchSurface<VertexT, NormalT>::calcPlane(cons
     Eigen::VectorXf F(k);
     Eigen::MatrixXf B(k,3);
 
-    for(int j = 0; j < k; j++){
+    for(size_t j = 0; j < k; j++){
         F(j)    =  this->m_points[id[j]][1];
         B(j, 0) = 1.0f;
         B(j, 1) = this->m_points[id[j]][0];
@@ -644,8 +644,8 @@ size_t AdaptiveKSearchSurface<VertexT, NormalT>::getNumPoints()
 
    template<typename VertexT, typename NormalT>
    Plane<VertexT, NormalT> AdaptiveKSearchSurface<VertexT, NormalT>::calcPlaneRANSAC(const VertexT &queryPoint,
-           const int &k,
-           const vector<int> &id,
+           const size_t &k,
+           const vector<size_t> &id,
            bool &ok)
            {
 
@@ -743,10 +743,10 @@ size_t AdaptiveKSearchSurface<VertexT, NormalT>::getNumPoints()
 
            //compute error to at most 50 other randomly chosen points
            dist = 0;
-           int n = min(50,k);
-           for(int i = 0; i < n; i++)
+           size_t n = min<size_t>(50,k);
+           for(size_t i = 0; i < n; i++)
            {
-               int index = id[rand() % k];
+               size_t index = id[rand() % k];
                VertexT refpoint = VertexT(this->m_points[index][0], this->m_points[index][1] ,this->m_points[index][2]);
                dist += fabs(refpoint * n0 - point1 * n0);
            }
@@ -783,7 +783,7 @@ size_t AdaptiveKSearchSurface<VertexT, NormalT>::getNumPoints()
 
 template<typename VertexT, typename NormalT>
 Plane<VertexT, NormalT> AdaptiveKSearchSurface<VertexT, NormalT>::calcPlaneRANSACfromPoints(const VertexT &queryPoint,
-        const int &k,
+        const size_t &k,
         const vector<VertexT> points,
         NormalT c_normal,
         bool &ok)
@@ -805,7 +805,7 @@ Plane<VertexT, NormalT> AdaptiveKSearchSurface<VertexT, NormalT>::calcPlaneRANSA
     int iterations              = 0;
     int nonimproving_iterations = 0;
 
-    int max_interations = max(10, k / 2);
+    size_t max_interations = max<size_t>(10, k / 2);
     //int max_interations  = 10;
 
     bool first_it = true;
@@ -857,7 +857,7 @@ Plane<VertexT, NormalT> AdaptiveKSearchSurface<VertexT, NormalT>::calcPlaneRANSA
 
         //compute error to at most 10 other randomly chosen points
         dist = 0;
-        int n = min(10,k);
+        int n = min<size_t>(10,k);
         for(int i = 0; i < n; i++)
         {
             int index = rand() % points.size();

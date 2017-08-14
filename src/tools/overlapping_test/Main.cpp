@@ -1,5 +1,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/shared_array.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/qi_lit.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
 
 #include <lvr/reconstruction/OverlappingKdTree.hpp>
 
@@ -22,7 +26,7 @@ using namespace lvr;
 typedef ColorVertex<double, unsigned char> cvertex;
 
 void rgb(float minimum, float maximum, float value,
-    unsigned int& r, unsigned int& g, unsigned int& b )
+    size_t& r, size_t& g, size_t& b )
 {
     float ratio = 2 * (value-minimum) / (maximum - minimum);
     b = int(std::max(float(0.0), 255*(1 - ratio)));
@@ -31,10 +35,10 @@ void rgb(float minimum, float maximum, float value,
 }
     
 
-void convertToRgb(unsigned int minimum, unsigned int maximum, unsigned int value, 
-        unsigned int& r, unsigned int& g, unsigned int& b )
+void convertToRgb(size_t minimum, size_t maximum, size_t value,
+        size_t& r, size_t& g, size_t& b )
 {
-    unsigned int halfmax = (minimum + maximum)/2;
+    size_t halfmax = (minimum + maximum)/2;
     if( minimum <= value <= halfmax)
     {
         r = 0;
@@ -48,7 +52,7 @@ void convertToRgb(unsigned int minimum, unsigned int maximum, unsigned int value
     }
 }
 
-void writeBlob(std::vector<std::vector<cvertex>* >& points, unsigned int number=0)
+void writeBlob(std::vector<std::vector<cvertex>* >& points, size_t number=0)
 {
     std::string number_str = std::to_string(number);
 
@@ -63,16 +67,16 @@ void writeBlob(std::vector<std::vector<cvertex>* >& points, unsigned int number=
     std::string filename = std::string("scan") + number_str + std::string(".blob");
     ofstream ofile(filename.c_str(), ios::out | ios::binary);
 
-    unsigned int num_points = 0;
-    for(unsigned int i=0; i< points.size(); i++)
+    size_t num_points = 0;
+    for(size_t i=0; i< points.size(); i++)
     {
         num_points += points[i]->size();
     }
 
     ofile << num_points << std::endl;
-    for(unsigned int i=0; i< points.size(); i++)
+    for(size_t i=0; i< points.size(); i++)
     {
-        unsigned int num_points = points[i]->size();
+        size_t num_points = points[i]->size();
         if(num_points > 0)
         {
             std::cout << "Writing " << num_points << " to " << filename << std::endl;
@@ -85,7 +89,7 @@ void writeBlob(std::vector<std::vector<cvertex>* >& points, unsigned int number=
     ofile.close();
 }
 
-void readBlob(unsigned int number, std::vector<cvertex>& out_points, unsigned int& num_inner_points )
+void readBlob(size_t number, std::vector<cvertex>& out_points, size_t& num_inner_points )
 {
 
     std::string number_str = std::to_string(number);
@@ -102,7 +106,7 @@ void readBlob(unsigned int number, std::vector<cvertex>& out_points, unsigned in
 
     out_points.clear();
     ifstream infile(filename.c_str(), ios::in | ios::binary);
-    unsigned int num_points_total;
+    size_t num_points_total;
     infile >> num_points_total;
 
     std::cout << "-- Read " << num_points_total << " Points in total" << std::endl;
@@ -116,11 +120,11 @@ void readBlob(unsigned int number, std::vector<cvertex>& out_points, unsigned in
 
     if(infile.is_open())
     {
-        unsigned int i = 0;
-        unsigned int index = 0;
+        size_t i = 0;
+        size_t index = 0;
         while(!infile.eof())
         {
-            unsigned int point_size;
+            size_t point_size;
             infile >> point_size;
 
             if(i == 0)
@@ -142,10 +146,10 @@ void readBlob(unsigned int number, std::vector<cvertex>& out_points, unsigned in
     
 }
 
-void savePly(std::vector<std::vector<cvertex>* >& points, unsigned int number=0 )
+void savePly(std::vector<std::vector<cvertex>* >& points, size_t number=0 )
 {
-    unsigned int num_points = 0;
-    for(unsigned int i=0; i< points.size(); i++)
+    size_t num_points = 0;
+    for(size_t i=0; i< points.size(); i++)
     {
         num_points += points[i]->size();
     }
@@ -169,12 +173,12 @@ void savePly(std::vector<std::vector<cvertex>* >& points, unsigned int number=0 
     myfile << "property uchar blue" << std::endl;
     myfile << "end_header" << std::endl;
 
-    for(unsigned int i=0; i<points.size(); i++)
+    for(size_t i=0; i<points.size(); i++)
     {
-        for(unsigned int j=0; j<points[i]->size(); j++)
+        for(size_t j=0; j<points[i]->size(); j++)
         {
             
-            unsigned int r,g,b;
+            size_t r,g,b;
             //convertToRgb(0, points.size(), i, r, g, b);
             rgb(0, points.size(), i, r, g, b);
 
@@ -281,7 +285,7 @@ void getPointBufferFromBlob(PointBufferPtr& buffer, int blob_number, size_t& num
     cout << timestamp << "Parsing " << n << endl;
 //    ifstream infile(n, ios::in | ios::binary);
 
-//    unsigned int num_points_total;
+//    size_t num_points_total;
 //    infile >> num_points_total;
 
 
@@ -290,12 +294,12 @@ void getPointBufferFromBlob(PointBufferPtr& buffer, int blob_number, size_t& num
 
 //    if(infile.is_open())
 //    {
-//        unsigned int i = 0;
-//        unsigned int index = 0;
+//        size_t i = 0;
+//        size_t index = 0;
 
 //        while(!infile.eof())
 //        {
-//            unsigned int point_size;
+//            size_t point_size;
 //            infile >> point_size;
 
 //            // Check needed. Last read could have invalidated the stream
@@ -337,12 +341,12 @@ void getPointBufferFromBlob(PointBufferPtr& buffer, int blob_number, size_t& num
 //        infile.sync();
 //        infile.close();
 //    }
-    unsigned int num_points_total = 0;
+    size_t num_points_total = 0;
     char newline;
     FILE* f = fopen(n, "r");
     if(f)
     {
-        fscanf(f, "%u", &num_points_total);
+        fscanf(f, "%zu", &num_points_total);
         cout << "Num points total: " << num_points_total << endl;
         cvertex* out_points = new cvertex[num_points_total];
         cvertex  pt;
@@ -351,13 +355,13 @@ void getPointBufferFromBlob(PointBufferPtr& buffer, int blob_number, size_t& num
 
         if(num_points_total)
         {
-            unsigned int i = 0;
-            unsigned int index = 0;
-            unsigned int pos = 0;
+            size_t i = 0;
+            size_t index = 0;
+            size_t pos = 0;
             do
             {
-                unsigned int point_size = 0;
-                fscanf(f, "%u", &point_size);
+                size_t point_size = 0;
+                fscanf(f, "%zu", &point_size);
 
                 if(feof(f)) break;
                 fread(&newline, 1, 1, f);
@@ -407,7 +411,7 @@ void getPointBufferFromBlob(PointBufferPtr& buffer, int blob_number, size_t& num
     }
 }
 
-void calculateNormalsCUDA(int n_blobs, int kn, int ki)
+void calculateNormalsCUDA(size_t n_blobs, size_t kn, size_t ki)
 {
     size_t n_all = 0;
     for(int i = 0; i < n_blobs; i++)
@@ -522,13 +526,11 @@ void calculateNormalsCUDA(int n_blobs, int kn, int ki)
         in.close();
     }
     ply_out.close();
-
-ls
 }
 
-unsigned int splitPointFile( string filename, overlapping_test::Options& opt, PointBufferPtr& buffer)
+size_t splitPointFile( string filename, overlapping_test::Options& opt, PointBufferPtr& buffer)
 {
-    unsigned int max_leaf_size = opt.maxLeafSize();
+    size_t max_leaf_size = opt.maxLeafSize();
     OverlappingKdTree<cvertex> OlTree(max_leaf_size);
 
     ModelPtr model = ModelFactory::readModel(filename);
@@ -568,13 +570,13 @@ unsigned int splitPointFile( string filename, overlapping_test::Options& opt, Po
 
     std::cout << std::endl;
     std::cout << "Splitted Points:" << std::endl;
-    for(unsigned int i=0; i<splitted_points.size(); i++)
+    for(size_t i=0; i<splitted_points.size(); i++)
     {
         // debug
         writeBlob(splitted_points[i], i);
         
         std::cout << " " << i << std::endl;
-        for(unsigned int j=0; j<splitted_points[i].size(); j++)
+        for(size_t j=0; j<splitted_points[i].size(); j++)
         {
             std::cout << "  " << j << ": " << splitted_points[i][j]->size() << std::endl;
         }
@@ -582,6 +584,59 @@ unsigned int splitPointFile( string filename, overlapping_test::Options& opt, Po
 
     return splitted_points.size();
 }
+
+template <typename Iterator>
+bool parse_filename(Iterator first, Iterator last, int& i)
+{
+
+using boost::spirit::qi::lit;
+using boost::spirit::qi::uint_parser;
+using boost::spirit::qi::parse;
+using boost::spirit::qi::_1;
+using boost::phoenix::ref;
+
+uint_parser<unsigned, 10, 3, 3> uint_3_d;
+
+bool r = parse(
+        first,                          /*< start iterator >*/
+        last,                           /*< end iterator >*/
+        ((lit("scan")|lit("Scan")) >> uint_3_d[ref(i) = _1])   /*< the parser >*/
+        );
+
+if (first != last) // fail if we did not get a full match
+    return false;
+return r;
+}
+
+bool sortPaths(boost::filesystem::path firstScan, boost::filesystem::path secScan)
+{
+    std::string firstStem = firstScan.stem().string();
+    std::string secStem   = secScan.stem().string();
+
+    int i = 0;
+    int j = 0;
+
+    bool first = parse_filename(firstStem.begin(), firstStem.end(), i);
+    bool sec = parse_filename(secStem.begin(), secStem.end(), j);
+
+    if(first && sec)
+    {
+        return (i < j);
+    }
+    else
+    {
+        // this causes non valid files being at the beginning of the vector.
+        if(sec)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
+
 
 int main(int argc, char** argv){
 
@@ -591,8 +646,8 @@ int main(int argc, char** argv){
 
     if(opt.blobMode())
     {
-        int n = (int)opt.nBlobs();
-        calculateNormalsCUDA(n, 100, 100);
+        size_t n = opt.nBlobs();
+        calculateNormalsCUDA(n, opt.kn(), opt.ki());
     }
     else
     {
@@ -601,9 +656,10 @@ int main(int argc, char** argv){
 
         if(boost::filesystem::is_directory(inFile))
         {
-            unsigned int max_leaf_size = opt.maxLeafSize();
+            size_t max_leaf_size = opt.maxLeafSize();
             OverlappingKdTree<cvertex> olTree(max_leaf_size);
 
+            vector<boost::filesystem::path> files;
             boost::filesystem::directory_iterator lastFile;
             for(boost::filesystem::directory_iterator it(inFile); it != lastFile; it++ )
             {
@@ -612,9 +668,37 @@ int main(int argc, char** argv){
 
                 if(string(p.extension().string().c_str()) == ".3d")
                 {
-                    addToTree(olTree, p);
+                    files.push_back(p);
+                    //addToTree(olTree, p);
                 }
+
+
             }
+
+            // Sort files and determine first and last file to parse
+            std::sort(files.begin(), files.end(), sortPaths);
+
+            size_t start = 0;
+            size_t end = files.size();
+
+            if(opt.first() > start && opt.first() < end)
+            {
+                start = opt.first();
+            }
+
+            if(opt.last() < end && opt.last() > start)
+            {
+                end = opt.last();
+            }
+
+            cout << start << " " << end << endl;
+
+            for(size_t i = start; i < end; i++)
+            {
+                boost::filesystem::path p = files[i];
+                addToTree(olTree, p);
+            }
+
 
             double overlap_dist = opt.overlapSize();
             cout << "Finishing tree with overlap distance " << overlap_dist << endl;
@@ -630,13 +714,13 @@ int main(int argc, char** argv){
 
             std::cout << std::endl;
             std::cout << "Splitted Points:" << std::endl;
-            for(unsigned int i=0; i<splitted_points.size(); i++)
+            for(size_t i=0; i<splitted_points.size(); i++)
             {
                 // debug
                 writeBlob(splitted_points[i], i);
 
                 std::cout << " " << i << std::endl;
-                for(unsigned int j=0; j<splitted_points[i].size(); j++)
+                for(size_t j=0; j<splitted_points[i].size(); j++)
                 {
                     std::cout << "  " << j << ": " << splitted_points[i][j]->size() << std::endl;
                 }
@@ -646,14 +730,14 @@ int main(int argc, char** argv){
         else
         {
             PointBufferPtr buffer(new PointBuffer);
-            unsigned int num_files = splitPointFile( opt.inputFile(), opt, buffer);
+            size_t num_files = splitPointFile( opt.inputFile(), opt, buffer);
 
 
-            for(unsigned int i = 0; i< num_files; i++)
+            for(size_t i = 0; i< num_files; i++)
             {
                 std::cout << "Read File " << i << std::endl;
                 std::vector< cvertex> points;
-                unsigned int num_inner_points;
+                size_t num_inner_points;
                 readBlob(i, points, num_inner_points);
                 std::cout << "Number of Points: " << points.size() << std::endl;
                 std::cout << "   Number of inner Points: " << num_inner_points << std::endl;

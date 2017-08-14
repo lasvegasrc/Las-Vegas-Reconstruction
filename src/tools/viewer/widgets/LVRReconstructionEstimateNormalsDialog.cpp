@@ -107,10 +107,10 @@ void LVREstimateNormalsDialog::estimateNormals()
 	    
 
         #pragma omp parallel for schedule(static)
-        for(int i = 0; i < numPoints; i++)
+        for(size_t i = 0; i < numPoints; i++)
         {
             // Create search tree
-            vector< int > indices;
+            vector< size_t > indices;
             vector< float > distances;
 
             Vertex<float> vertex(points[3 * i], points[3 * i + 1], points[3 * i + 2]);
@@ -118,7 +118,7 @@ void LVREstimateNormalsDialog::estimateNormals()
 
             // Do interpolation
             Normal<float> normal(normals[3 * i], normals[3 * i + 1], normals[3 * i + 2]);
-            for(int j = 0; j < indices.size(); j++)
+            for(size_t j = 0; j < indices.size(); j++)
             {
                 normal += Normal<float>(normals[3 * indices[j]], normals[3 * indices[j] + 1], normals[3 * indices[j] + 2]);
             }

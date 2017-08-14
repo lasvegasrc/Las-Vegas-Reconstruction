@@ -63,9 +63,9 @@ public:
         return (m_variables["inputFile"].as< vector<string> >())[0];
 	}
 	
-	unsigned int maxLeafSize() const
+    size_t maxLeafSize() const
 	{
-		return (m_variables["leafSize"].as<unsigned int>()); 
+        return (m_variables["leafSize"].as<size_t>());
 	}
 
 	float overlapSize() const
@@ -78,10 +78,32 @@ public:
         return (m_variables["blob"].as<bool>());
     }
 
-    unsigned int nBlobs() const
+    size_t nBlobs() const
     {
-        return (m_variables["nblobs"].as<unsigned int>());
+        return (m_variables["nblobs"].as<size_t>());
     }
+
+    size_t first()
+    {
+        return (m_variables["first"].as<size_t>());
+    }
+
+    size_t last()
+    {
+        return (m_variables["last"].as<size_t>());
+    }
+
+
+    size_t ki()
+    {
+        return (m_variables["ki"].as<size_t>());
+    }
+
+    size_t kn()
+    {
+        return (m_variables["kn"].as<size_t>());
+    }
+
 
 private:
 
@@ -95,9 +117,14 @@ private:
 	positional_options_description m_pdescr;
 
     float         m_overlap;
-	unsigned int  m_leafsize;
-    unsigned int  m_nBlobs;
+    size_t  m_leafsize;
+    size_t  m_nBlobs;
     bool          m_blobMode;
+    size_t  m_first;
+    size_t  m_last;
+
+    size_t  m_ki;
+    size_t  m_kn;
     string        m_outputFile;
 };
 

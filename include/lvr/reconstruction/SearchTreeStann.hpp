@@ -63,9 +63,9 @@ public:
      */
     SearchTreeStann( PointBufferPtr points,
             size_t &n_points,
-            const int &kn = 10,
-            const int &ki = 10,
-            const int &kd = 10,
+            const size_t &kn = 10,
+            const size_t &ki = 10,
+            const size_t &kd = 10,
             const bool &useRansac = false );
 
 
@@ -78,19 +78,19 @@ public:
      * @brief This function performs a k-next-neightbour search on the
                      data that were given in the conrstructor.
 
-     * @param qp          A float array which contains the query point for which the neighbours are searched.
+     * @param qp          A float array which contains the query posize_t for which the neighbours are searched.
      * @param neighbours  The number of neighbours that should be searched.
      * @param indices     A vector that stores the indices for the neighbours whithin the dataset.
      * @param distances   A vector that sotres the distances for the neighbours that are found.
      */
-    virtual void kSearch( coord < float >& qp, int neighbours, vector< int > &indices, vector< float > &distances );
-    virtual void kSearch(VertexT qp, int k, vector< VertexT > &neighbors);
+    virtual void kSearch( coord < float >& qp, size_t neighbours, vector< size_t > &indices, vector< float > &distances );
+    virtual void kSearch(VertexT qp, size_t k, vector< VertexT > &neighbors);
 
-    virtual void radiusSearch( float              qp[3], float r, vector< int > &indices );
-    virtual void radiusSearch( VertexT&              qp, float r, vector< int > &indices );
-    virtual void radiusSearch( const VertexT&        qp, float r, vector< int > &indices );
-    virtual void radiusSearch( coord< float >&       qp, float r, vector< int > &indices );
-    virtual void radiusSearch( const coord< float >& qp, float r, vector< int > &indices );
+    virtual void radiusSearch( float              qp[3], float r, vector< size_t > &indices );
+    virtual void radiusSearch( VertexT&              qp, float r, vector< size_t > &indices );
+    virtual void radiusSearch( const VertexT&        qp, float r, vector< size_t > &indices );
+    virtual void radiusSearch( coord< float >&       qp, float r, vector< size_t > &indices );
+    virtual void radiusSearch( const coord< float >& qp, float r, vector< size_t > &indices );
 
 protected:
 
