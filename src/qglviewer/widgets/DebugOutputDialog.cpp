@@ -41,9 +41,6 @@ DebugOutputDialog::DebugOutputDialog(QWidget* parent)
 
 DebugOutputDialog::~DebugOutputDialog()
 {
-    if(m_stream)
-    {
-        delete m_stream;
-    }
+
 }
 
