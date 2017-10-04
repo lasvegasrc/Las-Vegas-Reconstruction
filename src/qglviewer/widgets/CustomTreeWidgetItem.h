@@ -28,6 +28,7 @@
 #define CUSTOMTREEWIDGETITEM_H_
 
 #include <QtGui>
+#include <QTreeWidgetItem>
 
 #include <lvr/display/Renderable.hpp>
 

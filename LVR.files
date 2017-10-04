@@ -1306,3 +1306,4 @@ src/tools/viewer/widgets/LVRTextureMeshItem.cpp
 src/tools/viewer/widgets/LVRTextureMeshItem.hpp
 src/tools/viewer/widgets/LVRTransformationDialog.cpp
 src/tools/viewer/widgets/LVRTransformationDialog.hpp
+src/qglviewer/CMakeLists.txt

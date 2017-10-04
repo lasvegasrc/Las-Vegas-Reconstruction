@@ -32,7 +32,7 @@ DebugOutputDialog::DebugOutputDialog(QWidget* parent)
     m_ui = new DebugOutputDialogUI;
     m_ui->setupUi(dialog);
 
-    m_stream = new QDebugStream(std::cout, m_ui->plainTextEdit);
+    //m_stream = new QDebugStream(std::cout, m_ui->plainTextEdit);
 
     dialog->show();
     dialog->raise();
@@ -41,6 +41,9 @@ DebugOutputDialog::DebugOutputDialog(QWidget* parent)
 
 DebugOutputDialog::~DebugOutputDialog()
 {
-    delete m_stream;
+    if(m_stream)
+    {
+        delete m_stream;
+    }
 }
 

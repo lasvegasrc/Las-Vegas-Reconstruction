@@ -373,7 +373,7 @@ void ViewerApplication::openFile()
     //Set Title
     file_dialog.setWindowTitle("Open File");
     file_dialog.setFileMode(QFileDialog::ExistingFile);
-    file_dialog.setFilters(file_types);
+    file_dialog.setNameFilters(file_types);
 
     if(file_dialog.exec()){
         file_names = file_dialog.selectedFiles();
@@ -573,7 +573,7 @@ void ViewerApplication::saveSelectedObject()
 
         //Set Title
         file_dialog.setWindowTitle("Save selected object");
-        file_dialog.setFilters(file_types);
+        file_dialog.setNameFilters(file_types);
 
         if(file_dialog.exec()){
             file_names = file_dialog.selectedFiles();
