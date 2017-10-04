@@ -63,9 +63,10 @@ set(QVIEWER_RESOURCES
 
 # Generate mocs and header files for qt objects
 # and forms
-qt_wrap_cpp(qviewer QVIEWER_MOC_SRC ${QVIEWER_MOCS})
-qt_wrap_ui(qviewer QVIEWER_UI_HDRS QVIEWER_UI_SRC ${QVIEWER_UIS})
-qt4_add_resources(QVIEWER_RES_SRC ${QVIEWER_RESOURCES})
+set(CMAKE_AUTOMOC ON)
+
+qt5_wrap_ui(QVIEWER_UI_HDRS ${QVIEWER_UIS})
+qt5_add_resources(QVIEWER_RES_SRC ${QVIEWER_RESOURCES})
 
 add_definitions(${QT_DEFINITIONS})
 
@@ -78,14 +79,17 @@ add_executable(qviewer ${QVIEWER_SOURCES} ${QVIEWER_MOC_SRC} ${QVIEWER_UI_HDRS}
     ${QVIEWER_RES_SRC})
 
 # Add needed libraries
-target_link_libraries(qviewer ${QT_QTCORE_LIBRARIES})
-target_link_libraries(qviewer ${QT_QTGUI_LIBRARIES})
-target_link_libraries(qviewer ${QT_QTOPENGL_LIBRARIES})
-target_link_libraries(qviewer ${QT_QTXML_LIBRARY})
-target_link_libraries(qviewer lvr_static)
-target_link_libraries(qviewer ${OPENGL_LIBRARIES})
-target_link_libraries(qviewer ${GLUT_LIBRARIES})
-target_link_libraries(qviewer ${QGLVIEWER_LIBRARY_RELEASE})
+target_link_libraries(qviewer
+    ${Qt5Core_LIBRARIES}
+    ${Qt5Widgets_LIBRARIES}
+    ${Qt5OpenGL_LIBRARIES}
+    ${Qt5Xml_LIBRARIES}
+    ${QGLVIEWER_LIBRARY_RELEASE}
+    lvr_static
+    lvrrply_static
+    lvrlas_static
+    lvrslam6d_static)
+
 #target_link_libraries(qviewer GLU)
 target_link_libraries(qviewer ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY}

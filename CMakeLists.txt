@@ -349,15 +349,19 @@ set( QT_USE_QTOPENGL TRUE )
 set( QT_USE_XML TRUE)
 find_package( Qt5 COMPONENTS Core Widgets Xml OpenGL)
 if(Qt5_FOUND)
-  include_directories(${QT_INCLUDE_DIR})
-  include_directories(${QT_QTGUI_INCLUDE_DIR})
-  include_directories(${QT_QTOPENGL_INCLUDE_DIR})
-  include_directories(${QT_QTCORE_INCLUDE_DIR})
-  include_directories(${QT_QTXML_INCLUDE_DIR})
+
+  set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+  include_directories(${Qt5Widgets_INCLUDE_DIRS})
+  include_directories(${Qt5Xml_INCLUDE_DIRS})
+  include_directories(${Qt5Core_INCLUDE_DIRS})
+  include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+
+  message(STATUS ">>>>>>>>>>>>>>>>>>>>>>> ${Qt5Xml_INCLUDE_DIRS}")
 
   # Try to find libQGLViewer
   find_library(QGLVIEWER_LIBRARY_RELEASE
-      NAMES qglviewer-qt4 qglviewer QGLViewer QGLViewer2 libQGLViewer-qt4 QGLViewer-qt4 
+      NAMES qglviewer-qt5 qglviewer QGLViewer QGLViewer2 libQGLViewer-qt5 QGLViewer-qt5
       PATHS /usr/lib /usr/local/lib ENV QGLVIEWERROOT ENV LD_LIBRARY_PATH ENV LIBRARY_PATH
       PATH_SUFFIXES QGLViewer QGLViewer/release)
   if(QGLVIEWER_LIBRARY_RELEASE)
