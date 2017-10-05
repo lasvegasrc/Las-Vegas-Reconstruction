@@ -36,3 +36,12 @@ src/tools/image_normals
 include/lvr/io
 src/liblvr/reconstruction
 include/lvr/geometry
+src/liblvr/io
+src/tools/cuda_normals
+ext/kintinuous/kfusion/src/app
+src/liblvr/reconstruction/cuda
+include/lvr/reconstruction/cuda
+src/tools/viewer
+src/tools/overlapping_test
+src/tools/kdsplitter
+src/qglviewer

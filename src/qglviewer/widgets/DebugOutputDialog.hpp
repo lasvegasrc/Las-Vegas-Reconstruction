@@ -26,8 +26,7 @@
 #ifndef DEBUGOUTPUTDIALOG_H_
 #define DEBUGOUTPUTDIALOG_H_
 
-#include "DebugOutputDialogUI.h"
-#include "QDebugStream.hpp"
+#include "ui_DebugOutputDialogUI.h"
 
 using Ui::DebugOutputDialogUI;
 
@@ -41,7 +40,7 @@ public:
 private:
     DebugOutputDialogUI*        m_ui;
     QWidget*                    m_parent;
-    QDebugStream*               m_stream;
+    //QDebugStream*               m_stream;
 };
 
 

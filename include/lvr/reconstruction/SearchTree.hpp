@@ -26,7 +26,7 @@
 #ifndef SEARCH_TREE_H_
 #define SEARCH_TREE_H_
 
-#include <lvr/io/DataStruct.hpp>
+#include <lvr/io/PointBuffer.hpp>
 
 // Standard C++ includes
 #include <vector>
@@ -61,11 +61,11 @@ public:
      * @param k           The number of neighbours that should be searched.
      * @param indices     A vector that stores the indices for the neighbours whithin the dataset.
      */
-    virtual void kSearch( float              qp[3], int k, vector< int > &indices );
-    virtual void kSearch( VertexT&              qp, int k, vector< int > &indices );
-    virtual void kSearch( const VertexT&        qp, int k, vector< int > &indices );
-    virtual void kSearch( const coord< float >& qp, int k, vector< int > &indices );
-    virtual void kSearch( coord< float >&       qp, int k, vector< int > &indices );
+    virtual void kSearch( float              qp[3], size_t k, vector< size_t > &indices );
+    virtual void kSearch( VertexT&              qp, size_t k, vector< size_t > &indices );
+    virtual void kSearch( const VertexT&        qp, size_t k, vector< size_t > &indices );
+    virtual void kSearch( const coord< float >& qp, size_t k, vector< size_t > &indices );
+    virtual void kSearch( coord< float >&       qp, size_t k, vector< size_t > &indices );
 
     /**
      * @brief This function performs a k-next-neightbour search on the
@@ -76,58 +76,58 @@ public:
      * @param indices     A vector that stores the indices for the neighbours whithin the dataset.
      * @param distances   A vector that sotres the distances for the neighbours that are found.
      */
-    virtual void kSearch( float               qp[3], int k, vector< int > &indices, vector< float > &distances );
-    virtual void kSearch( VertexT&               qp, int k, vector< int > &indices, vector< float > &distances );
-    virtual void kSearch( const VertexT&         qp, int k, vector< int > &indices, vector< float > &distances );
-    virtual void kSearch( const coord < float >& qp, int k, vector< int > &indices, vector< float > &distances );
+    virtual void kSearch( float               qp[3], size_t k, vector< size_t > &indices, vector< float > &distances );
+    virtual void kSearch( VertexT&               qp, size_t k, vector< size_t > &indices, vector< float > &distances );
+    virtual void kSearch( const VertexT&         qp, size_t k, vector< size_t > &indices, vector< float > &distances );
+    virtual void kSearch( const coord < float >& qp, size_t k, vector< size_t > &indices, vector< float > &distances );
 
     // Pure virtual. All other search functions map to this. Must be implemented in sub-class.
-    virtual void kSearch( coord < float >&       qp, int k, vector< int > &indices, vector< float > &distances ) = 0;
-    virtual void kSearch( VertexT      qp, int k, vector< VertexT > &neighbors ) = 0;
+    virtual void kSearch( coord < float >&       qp, size_t k, vector< size_t > &indices, vector< float > &distances ) = 0;
+    virtual void kSearch( VertexT      qp, size_t k, vector< VertexT > &neighbors ) = 0;
 
 
 
-    virtual void radiusSearch( float              qp[3], float r, vector< int > &indices ) = 0;
-    virtual void radiusSearch( VertexT&              qp, float r, vector< int > &indices ) = 0;
-    virtual void radiusSearch( const VertexT&        qp, float r, vector< int > &indices ) = 0;
-    virtual void radiusSearch( coord< float >&       qp, float r, vector< int > &indices ) = 0;
-    virtual void radiusSearch( const coord< float >& qp, float r, vector< int > &indices ) = 0;
-
-
-    /**
-     * @brief Set the number of neighbours used to estimate and interpolate normals.
-     */
-    virtual void setKn( int kn );
+    virtual void radiusSearch( float              qp[3], float r, vector< size_t > &indices ) = 0;
+    virtual void radiusSearch( VertexT&              qp, float r, vector< size_t > &indices ) = 0;
+    virtual void radiusSearch( const VertexT&        qp, float r, vector< size_t > &indices ) = 0;
+    virtual void radiusSearch( coord< float >&       qp, float r, vector< size_t > &indices ) = 0;
+    virtual void radiusSearch( const coord< float >& qp, float r, vector< size_t > &indices ) = 0;
 
 
     /**
      * @brief Set the number of neighbours used to estimate and interpolate normals.
      */
-    virtual void setKi( int ki );
+    virtual void setKn( size_t kn );
+
+
+    /**
+     * @brief Set the number of neighbours used to estimate and interpolate normals.
+     */
+    virtual void setKi( size_t ki );
 
 
     /**
      * @brief Set the number of neighbours used for normal estimation
      */
-    virtual void setKd( int kd );
+    virtual void setKd( size_t kd );
 
 
     /**
      * @brief Get the number of neighbours used for normal interpolation
      */
-    virtual int getKn( void );
+    virtual size_t getKn( void );
 
 
     /**
      * @brief Get the number of tangent planes used for distance determination
      */
-    virtual int getKi( void );
+    virtual size_t getKi( void );
 
 
     /**
      * @brief Get the number of neighbours used to estimate and interpolate normals.
      */
-    int getKd( void );
+    size_t getKd( void );
 
 
 protected:
@@ -136,13 +136,13 @@ protected:
     virtual void initBuffers(PointBufferPtr buffer);
 
     /// The number of neighbors used for initial normal estimation
-    int                         m_kn;
+    size_t                         m_kn;
 
     /// The number of neighbors used for normal interpolation
-    int                         m_ki;
+    size_t                         m_ki;
 
     /// The number of tangent planes used for distance determination
-    int                         m_kd;
+    size_t                         m_kd;
 
     /// A pointer to the original point cloud data
     floatArr					m_pointData;

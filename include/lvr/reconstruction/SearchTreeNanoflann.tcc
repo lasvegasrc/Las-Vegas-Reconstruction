@@ -32,9 +32,9 @@ template<typename VertexT>
 SearchTreeNanoflann<VertexT>::SearchTreeNanoflann(
         PointBufferPtr points,
         size_t &n_points,
-        const int &kn,
-        const int &ki,
-        const int &kd,
+        const size_t &kn,
+        const size_t &ki,
+        const size_t &kd,
         const bool &useRansac )
 {
 	this->initBuffers(points);
@@ -51,7 +51,7 @@ SearchTreeNanoflann<VertexT>::SearchTreeNanoflann(
 template<typename VertexT>
 void SearchTreeNanoflann<VertexT>::kSearch(
            coord < float >& qp,
-           int neighbors, vector< int > &indices,
+           size_t neighbors, vector< size_t > &indices,
            vector< float > &distances )
 {
 
@@ -68,7 +68,7 @@ void SearchTreeNanoflann<VertexT>::kSearch(
     }
 }
 template<typename VertexT>
-void SearchTreeNanoflann<VertexT>::kSearch(VertexT qp, int k, vector< VertexT > &nb)
+void SearchTreeNanoflann<VertexT>::kSearch(VertexT qp, size_t k, vector< VertexT > &nb)
 {
     float query_point[3] = {qp[0], qp[1], qp[2]};
     vector<size_t> neighbors(k);
@@ -99,19 +99,19 @@ void SearchTreeNanoflann<VertexT>::kSearch(VertexT qp, int k, vector< VertexT > 
 
 
 template<typename VertexT>
-void SearchTreeNanoflann<VertexT>::radiusSearch( float              qp[3], float r, vector< int > &indices ) {};
+void SearchTreeNanoflann<VertexT>::radiusSearch( float              qp[3], float r, vector< size_t > &indices ) {};
 
 template<typename VertexT>
-void SearchTreeNanoflann<VertexT>::radiusSearch( VertexT&              qp, float r, vector< int > &indices ) {};
+void SearchTreeNanoflann<VertexT>::radiusSearch( VertexT&              qp, float r, vector< size_t > &indices ) {};
 
 template<typename VertexT>
-void SearchTreeNanoflann<VertexT>::radiusSearch( const VertexT&        qp, float r, vector< int > &indices ) {};
+void SearchTreeNanoflann<VertexT>::radiusSearch( const VertexT&        qp, float r, vector< size_t > &indices ) {};
 
 template<typename VertexT>
-void SearchTreeNanoflann<VertexT>::radiusSearch( coord< float >&       qp, float r, vector< int > &indices ) {};
+void SearchTreeNanoflann<VertexT>::radiusSearch( coord< float >&       qp, float r, vector< size_t > &indices ) {};
 
 template<typename VertexT>
-void SearchTreeNanoflann<VertexT>::radiusSearch( const coord< float >& qp, float r, vector< int > &indices ) {};
+void SearchTreeNanoflann<VertexT>::radiusSearch( const coord< float >& qp, float r, vector< size_t > &indices ) {};
 
 
 

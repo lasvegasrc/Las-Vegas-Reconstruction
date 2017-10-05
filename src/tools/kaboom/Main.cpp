@@ -46,6 +46,7 @@ using namespace std;
 #include <lvr/io/Timestamp.hpp>
 #include <lvr/io/ModelFactory.hpp>
 #include <lvr/io/AsciiIO.hpp>
+#include <lvr/io/IOUtils.hpp>
 #ifdef LVR_USE_PCL
 #include <lvr/reconstruction/PCLFiltering.hpp>
 #endif
@@ -86,75 +87,7 @@ ModelPtr filterModel(ModelPtr p, int k, float sigma)
     return NULL;
 }
 
-size_t countPointsInFile(boost::filesystem::path& inFile)
-{
-    ifstream in(inFile.c_str());
-    cout << timestamp << "Counting points in " << inFile.filename().string() << "..." << endl;
 
-    // Count lines in file
-    size_t n_points = 0;
-    char line[2048];
-    while(in.good())
-    {
-        in.getline(line, 1024);
-        n_points++;
-    }
-    in.close();
-
-    cout << timestamp << "File " << inFile.filename().string() << " contains " << n_points << " points." << endl;
-
-    return n_points;
-}
-
-void writeFrames(Eigen::Matrix4d transform, const boost::filesystem::path& framesOut)
-{
-    std::ofstream out(framesOut.c_str());
-
-    // write the rotation matrix
-    out << transform.col(0)(0) << " " << transform.col(0)(1) << " " << transform.col(0)(2) << " " << 0 << " "
-        << transform.col(1)(0) << " " << transform.col(1)(1) << " " << transform.col(1)(2) << " " << 0 << " "
-        << transform.col(2)(0) << " " << transform.col(2)(1) << " " << transform.col(2)(2) << " " << 0 << " ";
-
-    // write the translation vector
-    out << transform.col(3)(0) << " "
-        << transform.col(3)(1) << " "
-        << transform.col(3)(2) << " "
-        << transform.col(3)(3);
-
-    out.close();
-}
-
-size_t writeModel( ModelPtr model,const  boost::filesystem::path& outfile)
-{
-    size_t n_ip;
-    floatArr arr = model->m_pointCloud->getPointArray(n_ip);
-
-    // ModelFactory::saveModel(model, outfile.string());
-
-    return n_ip;
-}
-
-size_t writeAscii(ModelPtr model, std::ofstream& out)
-{
-    size_t n_ip, n_colors;
-
-    floatArr arr = model->m_pointCloud->getPointArray(n_ip);
-
-    ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
-    for(int a = 0; a < n_ip; a++)
-    {
-        out << arr[a * 3] << " " << arr[a * 3 + 1] << " " << arr[a * 3 + 2];
-
-        if(n_colors)
-        {
-            out << " " << (int)colors[a * 3] << " " << (int)colors[a * 3 + 1] << " " << (int)colors[a * 3 + 2];
-        }
-        out << endl;
-
-    }
-
-    return n_ip;
-}
 
 size_t writePly(ModelPtr model, std::fstream& out) 
 {
@@ -164,7 +97,7 @@ size_t writePly(ModelPtr model, std::fstream& out)
 
     ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
 
-    if(n_colors)
+    if(n_colors && !(options->noColor()))
     {
         if(n_colors != n_ip)
         {
@@ -210,128 +143,6 @@ size_t writePlyHeader(std::ofstream& out, size_t n_points, bool colors)
     out << "end_header" << std::endl;
 }
 
-int asciiReductionFactor(boost::filesystem::path& inFile)
-{
-
-    int reduction = options->getTargetSize();
-
-    /*
-     * If reduction is less than the number of points it will segfault
-     * because the modulo operation is not defined for n mod 0
-     * and we have to keep all points anyways.
-     * Same if no targetSize was given.
-     */
-    if(reduction != 0)
-    {
-        // Count lines in file
-        size_t n_points = countPointsInFile(inFile);
-
-        if(reduction < n_points)
-        {
-            return (int)n_points / reduction;
-        }
-    }
-
-    /* No reduction write all points */
-    return 1;
-
-}
-
-Eigen::Matrix4d buildTransformation(double* alignxf)
-{
-    Eigen::Matrix3d rotation;
-    Eigen::Vector4d translation;
-
-    rotation  << alignxf[0],  alignxf[4],  alignxf[8],
-    alignxf[1],  alignxf[5],  alignxf[9],
-    alignxf[2],  alignxf[6],  alignxf[10];
-
-    translation << alignxf[12], alignxf[13], alignxf[14], 1.0;
-
-    Eigen::Matrix4d transformation;
-    transformation.setIdentity();
-    transformation.block<3,3>(0,0) = rotation;
-    transformation.rightCols<1>() = translation;
-
-    return transformation;
-}
-
-Eigen::Matrix4d getTransformationFromPose(boost::filesystem::path& pose)
-{
-    ifstream poseIn(pose.c_str());
-    if(poseIn.good())
-    {
-        double rPosTheta[3];
-        double rPos[3];
-        double alignxf[16];
-
-        poseIn >> rPos[0] >> rPos[1] >> rPos[2];
-        poseIn >> rPosTheta[0] >> rPosTheta[1] >> rPosTheta[2];
-
-        rPosTheta[0] *= 0.0174533;
-        rPosTheta[1] *= 0.0174533;
-        rPosTheta[2] *= 0.0174533;
-
-        double sx = sin(rPosTheta[0]);
-        double cx = cos(rPosTheta[0]);
-        double sy = sin(rPosTheta[1]);
-        double cy = cos(rPosTheta[1]);
-        double sz = sin(rPosTheta[2]);
-        double cz = cos(rPosTheta[2]);
-
-        alignxf[0]  = cy*cz;
-        alignxf[1]  = sx*sy*cz + cx*sz;
-        alignxf[2]  = -cx*sy*cz + sx*sz;
-        alignxf[3]  = 0.0;
-        alignxf[4]  = -cy*sz;
-        alignxf[5]  = -sx*sy*sz + cx*cz;
-        alignxf[6]  = cx*sy*sz + sx*cz;
-        alignxf[7]  = 0.0;
-        alignxf[8]  = sy;
-        alignxf[9]  = -sx*cy;
-        alignxf[10] = cx*cy;
-
-        alignxf[11] = 0.0;
-
-        alignxf[12] = rPos[0];
-        alignxf[13] = rPos[1];
-        alignxf[14] = rPos[2];
-        alignxf[15] = 1;
-
-        return buildTransformation(alignxf);
-    }
-    else
-    {
-        return Eigen::Matrix4d::Identity();
-    }
-}
-
-Eigen::Matrix4d getTransformationFromFrames(boost::filesystem::path& frames)
-{
-    double alignxf[16];
-    int color;
-
-    std::ifstream in(frames.c_str());
-    int c = 0;
-    while(in.good())
-    {
-        c++;
-        for(int i = 0; i < 16; i++)
-        {
-            in >> alignxf[i];
-        }
-
-        in >> color;
-
-        if(!in.good())
-        {
-            c = 0;
-            break;
-        }
-    }
-
-    return buildTransformation(alignxf);
-}
 
 Eigen::Matrix4d transformFrames(Eigen::Matrix4d frames)
 {
@@ -383,102 +194,8 @@ Eigen::Matrix4d transformFrames(Eigen::Matrix4d frames)
     return frames;
 }
 
-void transformFromOptions(ModelPtr& model, int modulo)
-{
-    size_t n_ip, n_colors;
-    size_t cntr = 0;
 
-    floatArr arr = model->m_pointCloud->getPointArray(n_ip);
-    ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
 
-    // Plus one because it might differ because of the 0-index
-    // better waste memory for one float than having not enough space.
-    // TO-DO think about exact calculation.
-    size_t targetSize = (3 * ((n_ip)/modulo)) + modulo;
-    floatArr points(new float[targetSize ]);
-    ucharArr newColorsArr;
-
-    if(n_colors)
-    {
-        newColorsArr = ucharArr(new unsigned char[targetSize]);
-    }
-
-    for(int i = 0; i < n_ip; i++)
-    {
-        if(i % modulo == 0)
-        {
-            if(options->sx() != 1)
-            {
-                arr[i * 3] 		*= options->sx();
-            }
-
-            if(options->sy() != 1)
-            {
-                arr[i * 3 + 1] 	*= options->sy();
-            }
-
-            if(options->sz() != 1)
-            {
-                arr[i * 3 + 2] 	*= options->sz();
-            }
-
-            if((cntr * 3) < targetSize)
-            {
-                points[cntr * 3]     = arr[i * 3 + options->x()];
-                points[cntr * 3 + 1] = arr[i * 3 + options->y()];
-                points[cntr * 3 + 2] = arr[i * 3 + options->z()];
-            }
-            else
-            {
-                std::cout << "The following is for debugging purpose" << std::endl;
-                std::cout << "Cntr: " << (cntr * 3) << " targetSize: " << targetSize << std::endl;
-                std::cout << "nip : " << n_ip << " modulo " << modulo << std::endl;
-                break;
-            }
-            
-            if(n_colors)
-            {
-                newColorsArr[cntr * 3]     = colors[i * 3];
-                newColorsArr[cntr * 3 + 1] = colors[i * 3 + 1];
-                newColorsArr[cntr * 3 + 2] = colors[i * 3 + 2];
-            }
-
-            cntr++;
-        }
-    }
-
-    // Pass counter because it is the actual number of points used after reduction
-    // it might be 1 less than the size
-    model->m_pointCloud->setPointArray(points, cntr);
-
-    if(n_colors)
-    {
-        model->m_pointCloud->setPointColorArray(newColorsArr, cntr);
-    }
-}
-
-// transforming with Matrix from frames/pose
-void transformModel(ModelPtr model, Eigen::Matrix4d transformation)
-{
-    cout << timestamp << "Transforming model." << endl;
-    size_t numPoints;
-
-    floatArr arr = model->m_pointCloud->getPointArray(numPoints);
-
-    for(int i = 0; i < numPoints; i++)
-    {
-        float x = arr[3 * i];
-        float y = arr[3 * i + 1];
-        float z = arr[3 * i + 2];
-
-        Eigen::Vector4d v(x,y,z,1);
-        Eigen::Vector4d tv = transformation * v;
-
-        arr[3 * i]     = tv[0];
-        arr[3 * i + 1] = tv[1];
-        arr[3 * i + 2] = tv[2];
-    }
-}
 
 void processSingleFile(boost::filesystem::path& inFile)
 {
@@ -505,30 +222,36 @@ void processSingleFile(boost::filesystem::path& inFile)
         boost::filesystem::path framesPath(frames);
         boost::filesystem::path posePath(pose);
 
-        size_t reductionFactor = asciiReductionFactor(inFile);
+        size_t reductionFactor = getReductionFactor(model, options->getTargetSize());
 
         if(options->transformBefore())
         {
-            transformFromOptions(model, reductionFactor);
+ 	    transformAndReducePointCloud(
+		model, reductionFactor,
+		options->sx(), options->sy(), options->sz(),
+		options->x(), options->y(), options->z());	    
         }
 
         if(boost::filesystem::exists(framesPath))
         {
             std::cout << timestamp << "Getting transformation from frame: " << framesPath << std::endl;
             Eigen::Matrix4d transform = getTransformationFromFrames(framesPath);
-            transformModel(model, transform);
+            transformPointCloud(model, transform);
         }
         else if(boost::filesystem::exists(posePath))
         {
 
             std::cout << timestamp << "Getting transformation from pose: " << posePath << std::endl;
             Eigen::Matrix4d transform = getTransformationFromPose(posePath);
-            transformModel(model, transform);
+            transformPointCloud(model, transform);
         }
 
         if(!options->transformBefore())
         {
-            transformFromOptions(model, reductionFactor);
+             transformAndReducePointCloud(
+		model, reductionFactor,
+		options->sx(), options->sy(), options->sz(),
+		options->x(), options->y(), options->z());
         }
 
         static size_t points_written = 0;
@@ -549,7 +272,7 @@ void processSingleFile(boost::filesystem::path& inFile)
                 out.open(options->getOutputFile().c_str(), std::ofstream::out | std::ofstream::trunc);
             }
 
-            points_written += writeAscii(model, out);
+            points_written += writePointsToASCII(model, out, options->noColor());
 
             out.close();
         }
@@ -588,7 +311,7 @@ void processSingleFile(boost::filesystem::path& inFile)
                 // check if we have color information
                 size_t n_colors;
                 ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
-                if(n_colors)
+                if(n_colors && !(options->noColor()))
                 {
                     writePlyHeader(out, points_written, true);
                 }
@@ -656,7 +379,6 @@ void processSingleFile(boost::filesystem::path& inFile)
             char framesOut[1024];
             char poseOut[1024];
 
-            model = ModelFactory::readModel(inFile.string());
             sprintf(frames, "%s/%s.frames", inFile.parent_path().c_str(), inFile.stem().c_str());
             sprintf(pose, "%s/%s.pose", inFile.parent_path().c_str(), inFile.stem().c_str());
             sprintf(framesOut, "%s/%s.frames", options->getOutputDir().c_str(), inFile.stem().c_str());
@@ -675,20 +397,131 @@ void processSingleFile(boost::filesystem::path& inFile)
             }
 
             ofstream out(name);
-            transformFromOptions(model, asciiReductionFactor(inFile));
-            size_t points_written = writeAscii(model, out);
+           
+	    transformAndReducePointCloud(
+		model, getReductionFactor(model, options->getTargetSize()),
+		options->sx(), options->sy(), options->sz(),
+		options->x(), options->y(), options->z());
+	    
+            size_t points_written = writePointsToASCII(model, out, options->noColor());
+
+            out.close();
+            cout << timestamp << "Wrote " << points_written << " points to file " << name << endl;
+        }
+        else if(options->getOutputFormat() == "ASCII")
+        {
+            // Infer format from file extension, convert and write out
+            char name[1024];
+            char frames[1024];
+            char pose[1024];
+            char framesOut[1024];
+            char poseOut[1024];
+
+            std::cout << timestamp << "ASCII" << std::endl;
+
+            sprintf(frames, "%s/%s.frames", inFile.parent_path().c_str(), inFile.stem().c_str());
+            sprintf(pose, "%s/%s.pose", inFile.parent_path().c_str(), inFile.stem().c_str());
+            sprintf(framesOut, "%s/%s.frames", options->getOutputDir().c_str(), inFile.stem().c_str());
+            sprintf(poseOut, "%s/%s.pose", options->getOutputDir().c_str(), inFile.stem().c_str());
+            sprintf(name, "%s/%s.3d", options->getOutputDir().c_str(), inFile.stem().c_str());
+
+            boost::filesystem::path framesPath(frames);
+            boost::filesystem::path posePath(pose);
+
+            // Transform the frames
+            if(boost::filesystem::exists(framesPath))
+            {
+                std::cout << timestamp << "Transforming frame: " << framesPath << std::endl;
+                Eigen::Matrix4d transformed = transformFrames(getTransformationFromFrames(framesPath));
+                writeFrames(transformed, framesOut);
+            }
+
+            // Transform the pose file
+            if(boost::filesystem::exists(posePath))
+            {
+            }
+
+            ofstream out(name);
+	    
+      	    transformAndReducePointCloud(
+		model, getReductionFactor(model, options->getTargetSize()),
+		options->sx(), options->sy(), options->sz(),
+		options->x(), options->y(), options->z());
+
+            size_t points_written = writePointsToASCII(model, out, options->noColor());
+
+            out.close();
+            cout << timestamp << "Wrote " << points_written << " points to file " << name << endl;
+
+        }
+        else if(options->getOutputFormat() == "PLY")
+        {
+            char name[1024];
+            char frames[1024];
+            char pose[1024];
+            char framesOut[1024];
+            char poseOut[1024];
+
+            std::cout << timestamp << "Writing PLY" << std::endl;
+
+            sprintf(frames, "%s/%s.frames", inFile.parent_path().c_str(), inFile.stem().c_str());
+            sprintf(pose, "%s/%s.pose", inFile.parent_path().c_str(), inFile.stem().c_str());
+            sprintf(framesOut, "%s/%s.frames", options->getOutputDir().c_str(), inFile.stem().c_str());
+            sprintf(poseOut, "%s/%s.pose", options->getOutputDir().c_str(), inFile.stem().c_str());
+            sprintf(name, "%s/%s.ply", options->getOutputDir().c_str(), inFile.stem().c_str());
+
+            boost::filesystem::path framesPath(frames);
+            boost::filesystem::path posePath(pose);
+            boost::filesystem::path saveName(name);
+
+            // Transform the frames
+            if(boost::filesystem::exists(framesPath))
+            {
+                std::cout << timestamp << "Transforming frame: " << framesPath << std::endl;
+                Eigen::Matrix4d transformed = transformFrames(getTransformationFromFrames(framesPath));
+                writeFrames(transformed, framesOut);
+            }
+
+	    transformAndReducePointCloud(
+		model, getReductionFactor(model, options->getTargetSize()),
+		options->sx(), options->sy(), options->sz(),
+		options->x(), options->y(), options->z());
+
+	    
+            std::ofstream out;
+
+            // write the header -> open in text_mode 
+            out.open(saveName.c_str(), std::ofstream::out | std::ofstream::trunc);
+
+            // check if we have color information
+            size_t n_colors;
+            size_t n_ip;
+            ucharArr colors = model->m_pointCloud->getPointColorArray(n_colors);
+            floatArr point  = model->m_pointCloud->getPointArray(n_ip);
+            if(n_colors && !(options->noColor()))
+            {
+                writePlyHeader(out, n_ip, true);
+            }
+            else
+            {
+                writePlyHeader(out, n_ip, false);
+            }
 
             out.close();
 
-            cout << "Wrote " << points_written << " points to file " << name << endl;
-         }
-        else if(options->getOutputFormat() == "SLAM")
-        {
-            std::cerr << "I am sorry! This is not implemented yet" << std::endl;
-        }
-        else
-        {
-            std::cerr << "I am sorry! This is not implemented yet" << std::endl;
+            std::fstream binOut;
+            //size_t points_written = writeModel(model, saveName);
+
+            //binOut.open(options->getOutputFile(), std::ofstream::out | std::ofstream::app | std::ofstream::binary);
+            
+            binOut.open(saveName.c_str(), std::fstream::in | std::fstream::out | std::fstream::app | std::fstream::binary);
+
+            size_t points_written = writePly(model, binOut);
+            
+            binOut.close();
+
+            cout << timestamp << "Wrote " << points_written << " points to file " << name << endl;
+
         }
     }
 }
@@ -785,7 +618,7 @@ int main(int argc, char** argv) {
     for(boost::filesystem::directory_iterator it(inputDir); it != end; ++it)
     {
         std::string ext =	it->path().extension().string();
-        if(ext == ".3d" || ext == ".ply" || ext == ".dat" || ext == ".txt" )
+        if(ext == ".3d" || ext == ".ply" || ext == ".dat" || ext == ".txt" || ext == ".las")
         {
             v.push_back(it->path());
         }
@@ -835,7 +668,6 @@ int main(int argc, char** argv) {
                         lastScan = true;
                     }
                     processSingleFile(*it);
-                    std::cout << " finished" << std::endl;
                 }
                 catch(const char* msg)
                 {

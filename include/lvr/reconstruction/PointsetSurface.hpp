@@ -146,13 +146,13 @@ protected:
     typename SearchTree<VertexT>::Ptr       m_searchTree;
 
     /// The number of points used for normal estimation
-    int                                     m_kn;
+    size_t                                  m_kn;
 
     /// The number of points used for normal interpolation
-    int                                     m_ki;
+    size_t                                  m_ki;
 
     /// The number of points used for distance function evaluation
-    int                                     m_kd;
+    size_t                                  m_kd;
 
     /// The bounding box of the point cloud
     BoundingBox<VertexT>                    m_boundingBox;

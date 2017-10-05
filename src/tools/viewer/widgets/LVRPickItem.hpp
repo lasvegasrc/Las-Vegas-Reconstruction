@@ -25,7 +25,7 @@
 #ifndef LVRPICKITEM_HPP_
 #define LVRPICKITEM_HPP_
 
-#include <QtGui/qtreewidget.h>
+#include <QTreeWidget>
 
 #include "LVRItemTypes.hpp"
 #include "../vtkBridge/LVRVtkArrow.hpp"

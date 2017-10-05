@@ -117,9 +117,9 @@ public:
 	 */
     AdaptiveKSearchSurface( PointBufferPtr loader,
             std::string searchTreeName,
-            const int &kn = 10,
-            const int &ki = 10,
-            const int &kd = 10,
+            const size_t &kn = 10,
+            const size_t &ki = 10,
+            const size_t &kd = 10,
             const bool &useRansac = false,
             string poseFile = "");
 
@@ -149,7 +149,7 @@ public:
 	/**
 	 * @brief Calculates a tangent plane for the query point using the provided
 	 *        k-neighborhood
-	 *
+     *
 	 * @param queryPoint    The point for which the tangent plane is created
 	 * @param k             The size of the used k-neighborhood
 	 * @param points        The neighborhood points
@@ -158,7 +158,7 @@ public:
 	 * @return the resulting plane
 	 */
 	Plane<VertexT, NormalT> calcPlaneRANSACfromPoints(const VertexT &queryPoint,
-	        const int &k,
+            const size_t &k,
 	        vector<VertexT> points, NormalT c_normal, bool &ok);
 
 
@@ -195,17 +195,17 @@ public:
     void useRansac(bool use_it) { m_useRANSAC = use_it;}
     
     
-    void setKD( int kd )
+    void setKD( size_t kd )
     {
         m_kd = kd;
     }
 
-    void setKI( int ki )
+    void setKI( size_t ki )
     {
         m_ki = ki;
     }
 
-    void setKN( int kn )
+    void setKN( size_t kn )
     {
         m_kn = kn;
     }
@@ -264,7 +264,7 @@ private:
 	 * @param id            A list of point id's
 	 * @param k             The number of points in the list
 	 */
-	float meanDistance(const Plane<VertexT, NormalT> &p, const vector<unsigned long> &id, const int &k);
+    float meanDistance(const Plane<VertexT, NormalT> &p, const vector<size_t> &id, const size_t &k);
 
 	/**
 	 * @brief Returns a vertex representation of the given point in the
@@ -273,7 +273,7 @@ private:
 	 * @param i             A id of a point in the current point set
 	 * @return              A vertex representation of the given point
 	 */
-	VertexT fromID(int i);
+    VertexT fromID(size_t i);
 
 	/**
 	 * @brief Returns the distance between vertex v and plane p
@@ -293,12 +293,12 @@ private:
 	 * @param ok            True, if RANSAC interpolation was succesfull
 	 */
 	Plane<VertexT, NormalT> calcPlane(const VertexT &queryPoint,
-	        const int &k,
-	        const vector<int> &id);
+            const size_t &k,
+            const vector<size_t> &id);
 
 	Plane<VertexT, NormalT> calcPlaneRANSAC(const VertexT &queryPoint,
-	        const int &k,
-	        const vector<int> &id, bool &ok );
+            const size_t &k,
+            const vector<size_t> &id, bool &ok );
 
 
 	/// The centroid of the point set
@@ -319,13 +319,13 @@ private:
     size_t                      m_numPoints;
 
     /// The number of neighbors used for initial normal estimation
-    int                         m_kn;
+    size_t                      m_kn;
 
     /// The number of neighbors used for normal interpolation
-    int                         m_ki;
+    size_t                      m_ki;
 
     /// The number of tangent planes used for distance determination
-    int                         m_kd;
+    size_t                      m_kd;
 
     /// Search tree for scan poses
     typename SearchTree<VertexT>::Ptr  m_poseTree;

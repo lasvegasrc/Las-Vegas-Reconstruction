@@ -4,7 +4,6 @@ project(LAS_VEGAS)
 set_property(GLOBAL PROPERTY USE_FOLDERS On) 
 
 include(GNUInstallDirs)
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -35,8 +34,31 @@ endif(MSVC)
 ####
 ## Searching for CUDA
 ##############################
-find_package( CUDA )
+find_package(CUDA 8.0)
 
+if(CUDA_FOUND)
+# Check and set CUDA host compiler flags. CUDA 6.5 is only
+# compatible to gcc4.8. Older CUDA versions require GCC lower
+# than 4.8
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6 )
+        message(STATUS "******************************************************************")
+        message(STATUS "* You g++ 5 to compile the LVR CUDA features. Please install     *")
+        message(STATUS "* gcc 5. We will now set the host compiler to /usr/bin/g++-5.    *")
+        message(STATUS "* If that does not work, install g++-5. If that doesn't help set *")
+        message(STATUS "* the CUDA host compiler to a supported compiler verion with     *")
+        message(STATUS "* 'cmake -DCUDA_MANUAL_HOST_COMPILER=/path/to/your/compiler ..'  *")
+        message(STATUS "******************************************************************")
+        if(CUDA_MANUAL_HOST_COMPILER)
+            set(CUDA_HOST_COMPILER ${CUDA_MANUAL_HOST_COMPILER})
+        else()
+            set(CUDA_HOST_COMPILER "/usr/bin/g++-5")
+        endif()
+        message(STATUS "Using CUDA host compiler ${CUDA_HOST_COMPILER}")
+    endif()
+endif()
+endif()
 
 ####
 ## Searching for OpenCV
@@ -58,6 +80,11 @@ if(FLANN_FOUND)
   include_directories(${FLANN_DIR})
 endif(FLANN_FOUND)
 
+find_package(  Lz4 REQUIRED )
+include_directories(  ${LZ4_INCLUDE_DIR} )
+message("LZ4 library found: ${LZ4_LIBRARY}")
+
+
 ####
 ## Searching for GSL
 ##############################
@@ -73,10 +100,10 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 ####
 ## Searching for MPI
 ##############################
-find_package( MPI )
-if(MPI_FOUND)
-  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-endif(MPI_FOUND)
+#find_package( MPI )
+#if(MPI_FOUND)
+#  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+#endif(MPI_FOUND)
 
 ####
 ## Searching for VTK
@@ -100,16 +127,16 @@ endif(NABO_FOUND)
 ## Searching for PCL
 ##############################
 
-#find_package(PCL 1.7)
-#if(PCL_FOUND)
-#  include_directories(${PCL_INCLUDE_DIRS})
-#  link_directories(${PCL_LIBRARY_DIRS})
-#  add_definitions(${PCL_DEFINITIONS})
-#  list(APPEND LVR_DEFINITIONS -DLVR_USE_PCL)
-#else(PCL_FOUND)
-#  message( "-- No PCL found." )
-#  message( "-- PCL related stuff will be disabled." )
-#endif(PCL_FOUND)
+find_package(PCL 1.8)
+if(PCL_FOUND)
+  include_directories(${PCL_INCLUDE_DIRS})
+  link_directories(${PCL_LIBRARY_DIRS})
+  add_definitions(${PCL_DEFINITIONS})
+  list(APPEND LVR_DEFINITIONS -DLVR_USE_PCL)
+else(PCL_FOUND)
+  message( "-- No PCL found." )
+  message( "-- PCL related stuff will be disabled." )
+endif(PCL_FOUND)
 
 ####
 ## Searching CGAL
@@ -140,7 +167,7 @@ find_package( Boost 1.54
     filesystem
     system
     thread
-    serialization
+    serialization5flann13serializati
     mpi
     REQUIRED )
 else()
@@ -245,6 +272,11 @@ add_subdirectory(ext/slam6d)
 include_directories( ${SLAM6D_INCLUDE_DIR} )
 list(APPEND LVR_INSTALL_INCLUDE_DIRS ${SLAM6D_INSTALL_INCLUDE_DIR})
 
+# CTPL
+
+include_directories(ext/CTPL)
+
+
 ##############################################################
 # ADD LVR DEFINITIONS
 ##############################################################
@@ -256,28 +288,18 @@ add_definitions(${LVR_DEFINITIONS})
 ##############################################################
 option(WITH_KINFU "Compile LVR Kinfu" OFF)
 
-# Check and set CUDA host compiler flags. CUDA 6.5 is only 
-# compatible to gcc4.8. Older CUDA versions require GCC lower 
-# than 4.8
 
-if(WITH_KINFU AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CUDA_VERSION VERSION_LESS 7)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.8 )
-        message(STATUS "******************************************************************")
-        message(STATUS "* Your gcc version needs to be lower than 4.9 to compile the LVR *")
-        message(STATUS "* KinectFusion library and apps with CUDA 6.5 or less. Please    *") 
-        message(STATUS "* install gcc 4.8 and set the CUDA host compiler accordingly     *")
-        message(STATUS "* by setting the CUDA_HOST_COMPILER to gcc4.8. This can be done  *")
-        message(STATUS "* in your cmake gui program or by manually calling e.g.          *")
-        message(STATUS "* 'cmake <SOURCE_DIR> -DCUDA_HOST_COMPILER=/usr/bin/gcc-4.8'     *")
-        message(STATUS "******************************************************************")
-        message(WARNING "Incompatible CUDA host compiler detected. Fix it manually.")
-    endif()
-endif()
 
 if(CUDA_FOUND AND "${OpenCV_VERSION_PATCH}" VERSION_GREATER "8" AND WITH_KINFU)
     message(STATUS "Building LVR KinFu.")
     add_subdirectory(ext/kintinuous)
     include_directories(${LAS_VEGAS_SOURCE_DIR}/ext/kintinuous/kfusion/include)
+endif()
+
+if(CUDA_FOUND)
+    cuda_include_directories(ext/CTPL)
+    add_subdirectory(src/tools/cuda_normals)
+    add_subdirectory(src/tools/overlapping_test)
 endif()
 
 ##############################################################
@@ -325,17 +347,21 @@ include(${VTK_USE_FILE})
 
 set( QT_USE_QTOPENGL TRUE )
 set( QT_USE_XML TRUE)
-find_package( Qt4 )
-if(QT4_FOUND)
-  include_directories(${QT_INCLUDE_DIR})
-  include_directories(${QT_QTGUI_INCLUDE_DIR})
-  include_directories(${QT_QTOPENGL_INCLUDE_DIR})
-  include_directories(${QT_QTCORE_INCLUDE_DIR})
-  include_directories(${QT_QTXML_INCLUDE_DIR})
+find_package( Qt5 COMPONENTS Core Widgets Xml OpenGL)
+if(Qt5_FOUND)
+
+  set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+  include_directories(${Qt5Widgets_INCLUDE_DIRS})
+  include_directories(${Qt5Xml_INCLUDE_DIRS})
+  include_directories(${Qt5Core_INCLUDE_DIRS})
+  include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+
+  message(STATUS ">>>>>>>>>>>>>>>>>>>>>>> ${Qt5Xml_INCLUDE_DIRS}")
 
   # Try to find libQGLViewer
   find_library(QGLVIEWER_LIBRARY_RELEASE
-      NAMES qglviewer-qt4 qglviewer QGLViewer QGLViewer2 libQGLViewer-qt4
+      NAMES qglviewer-qt5 qglviewer QGLViewer QGLViewer2 libQGLViewer-qt5 QGLViewer-qt5
       PATHS /usr/lib /usr/local/lib ENV QGLVIEWERROOT ENV LD_LIBRARY_PATH ENV LIBRARY_PATH
       PATH_SUFFIXES QGLViewer QGLViewer/release)
   if(QGLVIEWER_LIBRARY_RELEASE)
@@ -343,13 +369,12 @@ if(QT4_FOUND)
     message(STATUS "Building qglviewer application")
     add_subdirectory(src/qglviewer)
   endif(QGLVIEWER_LIBRARY_RELEASE)
-
-  find_package(QVTK)
-  if(QVTK_FOUND)
-    include_directories(${QVTK_INCLUDE_DIR})
+  #find_package(QVTK)
+  #if(QVTK_FOUND)
+  #  include_directories(${QVTK_INCLUDE_DIR})
     add_subdirectory(src/tools/viewer)
-  endif(QVTK_FOUND)
-endif(QT4_FOUND)
+ # endif(QVTK_FOUND)
+endif(Qt5_FOUND)
 
 ##############################################################
 # LIBRARIES
@@ -375,6 +400,9 @@ add_subdirectory(src/tools/registration)
 add_subdirectory(src/tools/normals)
 add_subdirectory(src/tools/kaboom)
 add_subdirectory(src/tools/image_normals)
+add_subdirectory(src/tools/kdsplitter)
+
+
 
 if(MPI_FOUND)
   add_subdirectory(src/tools/mpi)

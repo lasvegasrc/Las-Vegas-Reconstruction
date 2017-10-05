@@ -51,7 +51,7 @@ void SearchTree< VertexT >::initBuffers(PointBufferPtr buffer)
 }
 
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( float qp[3], int neighbours, vector< int > &indices )
+void SearchTree< VertexT >::kSearch( float qp[3], size_t neighbours, vector< size_t > &indices )
 {
     vector< float > distances;
     this->kSearch( qp, neighbours, indices, distances);
@@ -59,7 +59,7 @@ void SearchTree< VertexT >::kSearch( float qp[3], int neighbours, vector< int > 
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( VertexT &qp, int neighbours, vector< int > &indices )
+void SearchTree< VertexT >::kSearch( VertexT &qp, size_t neighbours, vector< size_t > &indices )
 {
     vector< float > distances;
     this->kSearch( qp, neighbours, indices, distances);
@@ -67,7 +67,7 @@ void SearchTree< VertexT >::kSearch( VertexT &qp, int neighbours, vector< int > 
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( const VertexT &qp, int neighbours, vector< int > &indices )
+void SearchTree< VertexT >::kSearch( const VertexT &qp, size_t neighbours, vector< size_t > &indices )
 {
     vector< float > distances;
     this->kSearch( qp, neighbours, indices, distances);
@@ -75,7 +75,7 @@ void SearchTree< VertexT >::kSearch( const VertexT &qp, int neighbours, vector< 
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( coord< float > &qp, int neighbours, vector< int > &indices )
+void SearchTree< VertexT >::kSearch( coord< float > &qp, size_t neighbours, vector< size_t > &indices )
 {
     vector< float > distances;
     this->kSearch( qp, neighbours, indices, distances);
@@ -83,7 +83,7 @@ void SearchTree< VertexT >::kSearch( coord< float > &qp, int neighbours, vector<
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( const coord< float > &qp, int neighbours, vector< int > &indices )
+void SearchTree< VertexT >::kSearch( const coord< float > &qp, size_t neighbours, vector< size_t > &indices )
 {
     vector< float > distances;
     this->kSearch( qp, neighbours, indices, distances);
@@ -94,7 +94,7 @@ void SearchTree< VertexT >::kSearch( const coord< float > &qp, int neighbours, v
    Begin of kSearch implementations with distances
  */
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( float qp[3], int neighbours, vector< int > &indices, vector< float > &distances )
+void SearchTree< VertexT >::kSearch( float qp[3], size_t neighbours, vector< size_t > &indices, vector< float > &distances )
 {
     coord< float > Point;
     Point[0] = qp[0];
@@ -105,7 +105,7 @@ void SearchTree< VertexT >::kSearch( float qp[3], int neighbours, vector< int > 
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( VertexT &qp, int neighbours, vector< int > &indices, vector< float > &distances )
+void SearchTree< VertexT >::kSearch( VertexT &qp, size_t neighbours, vector< size_t > &indices, vector< float > &distances )
 {
     float qp_arr[3];
     qp_arr[0] = qp[0];
@@ -116,7 +116,7 @@ void SearchTree< VertexT >::kSearch( VertexT &qp, int neighbours, vector< int > 
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( const VertexT &qp, int neighbours, vector< int > &indices, vector< float > &distances )
+void SearchTree< VertexT >::kSearch( const VertexT &qp, size_t neighbours, vector< size_t > &indices, vector< float > &distances )
 {
     float qp_arr[3];
     qp_arr[0] = qp[0];
@@ -127,7 +127,7 @@ void SearchTree< VertexT >::kSearch( const VertexT &qp, int neighbours, vector< 
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::kSearch( const coord< float > &qp, int neighbours, vector< int > &indices, vector< float > &distances )
+void SearchTree< VertexT >::kSearch( const coord< float > &qp, size_t neighbours, vector< size_t > &indices, vector< float > &distances )
 {
     float qp_arr[3];
     coord< float > qpcpy = qp;
@@ -139,35 +139,35 @@ void SearchTree< VertexT >::kSearch( const coord< float > &qp, int neighbours, v
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::setKn( int kn ) {
+void SearchTree< VertexT >::setKn( size_t kn ) {
     m_kn = kn;
 }
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::setKi( int ki ) {
+void SearchTree< VertexT >::setKi( size_t ki ) {
     m_ki = ki;
 }
 
 
 template<typename VertexT>
-void SearchTree< VertexT >::setKd( int kd ) {
+void SearchTree< VertexT >::setKd( size_t kd ) {
     m_kd = kd;
 }
 
 template<typename VertexT>
-int SearchTree< VertexT >::getKn() {
+size_t SearchTree< VertexT >::getKn() {
     return m_kn;
 }
 
 
 template<typename VertexT>
-int SearchTree< VertexT >::getKi() {
+size_t SearchTree< VertexT >::getKi() {
     return m_ki;
 }
 
 template<typename VertexT>
-int SearchTree< VertexT >::getKd() {
+size_t SearchTree< VertexT >::getKd() {
     return m_kd;
 }
 } // namespace

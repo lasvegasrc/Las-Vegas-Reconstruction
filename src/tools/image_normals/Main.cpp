@@ -20,24 +20,24 @@
 
 // Program options for this tool
 
-
-#include <lvr/io/ModelFactory.hpp>
+#include <lvr/io/IOUtils.hpp>
 #include <lvr/reconstruction/ModelToImage.hpp>
 #include <lvr/reconstruction/PanoramaNormals.hpp>
 #include "Options.hpp"
+
+#include <boost/filesystem.hpp>
+
+#include <Eigen/Dense>
+
+#include <fstream>
+using std::ifstream;
+
 using namespace lvr;
 
 
-/**
- * @brief   Main entry point for the LSSR surface executable
- */
-int main(int argc, char** argv)
+void computeNormals(string filename, image_normals::Options& opt, PointBufferPtr& buffer)
 {
-    image_normals::Options opt(argc, argv);
-    cout << opt << endl;
-
-
-    ModelPtr model = ModelFactory::readModel(opt.inputFile());
+    ModelPtr model = ModelFactory::readModel(filename);
 
     // Determine coordinate system
     ModelToImage::CoordinateSystem system = ModelToImage::NATIVE;
@@ -63,10 +63,56 @@ int main(int argc, char** argv)
     mti.writePGM(opt.imageFile(), 3000);
 
     PanoramaNormals normals(&mti);
-    PointBufferPtr buffer = normals.computeNormals(opt.regionWidth(), opt.regionHeight(), false);
+    buffer = normals.computeNormals(opt.regionWidth(), opt.regionHeight(), false);
+}
 
-    ModelPtr out_model(new Model(buffer));
 
-    ModelFactory::saveModel(out_model, "normals.ply");
+
+/**
+ * @brief   Main entry point for the LSSR surface executable
+ */
+int main(int argc, char** argv)
+{
+    image_normals::Options opt(argc, argv);
+    cout << opt << endl;
+    
+    boost::filesystem::path inFile(opt.inputFile());
+
+    if(boost::filesystem::is_directory(inFile))
+    {
+        vector<float> all_points;
+        vector<float> all_normals;
+
+        boost::filesystem::directory_iterator lastFile;
+        for(boost::filesystem::directory_iterator it(inFile); it != lastFile; it++ )
+        {
+            boost::filesystem::path p = boost::filesystem::canonical(it->path());
+            string currentFile = p.filename().string();
+
+            if(string(p.extension().string().c_str()) == ".3d")
+            {
+                // Check for naming convention "scanxxx.3d"
+                int num = 0;
+                if(sscanf(currentFile.c_str(), "scan%3d", &num))
+                {
+                    cout << timestamp << "Processing " << p.string() << endl;
+                    PointBufferPtr buffer;
+                    computeNormals(p.string(), opt, buffer);
+                    transformPointCloudAndAppend(buffer, p, all_points, all_normals);
+
+                }
+            }
+        }
+
+        writePointsAndNormals(all_points, all_normals, opt.outputFile());
+    }
+    else
+    {
+        PointBufferPtr buffer;
+        computeNormals(opt.inputFile(), opt, buffer);
+        ModelPtr out_model(new Model(buffer));
+        ModelFactory::saveModel(out_model, opt.outputFile());
+    }
+
 }
 

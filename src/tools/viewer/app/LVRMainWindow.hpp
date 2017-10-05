@@ -41,8 +41,10 @@
 #include <vtkAxesActor.h>
 
 #include <QtGui>
-#include "LVRMainWindowUI.h"
-#include "LVRAboutDialogUI.h"
+#include <QMessageBox>
+
+#include "ui_LVRMainWindowUI.h"
+#include "ui_LVRAboutDialogUI.h"
 #include "LVRTreeWidgetHelper.hpp"
 #include "../vtkBridge/LVRModelBridge.hpp"
 #include "../widgets/LVRModelItem.hpp"

@@ -1828,13 +1828,22 @@ void HalfEdgeMesh<VertexT, NormalT>::finalizeAndRetesselate( bool genTextures, f
 
             if ( genTextures )
             {
-                int one = 1;
+                int one = 5;
                 vector<VertexT> cv;
                 this->m_pointCloudManager->searchTree()->kSearch((*m_regions[iRegion]->m_faces[iFace]).getCentroid(), one, cv);
-                r = *((uchar*) &(cv[0][3])); /* red */
-                g = *((uchar*) &(cv[0][4])); /* green */
-                b = *((uchar*) &(cv[0][5])); /* blue */
 
+                r = 0;
+                g = 0;
+                b = 0;
+                for(size_t m = 0; m < cv.size(); m++)
+                {
+                    r += *((uchar*) &(cv[m][3])); /* red */
+                    g += *((uchar*) &(cv[m][4])); /* green */
+                    b += *((uchar*) &(cv[m][5])); /* blue */
+                }
+                r /= cv.size();
+                g /= cv.size();
+                b /= cv.size();
             }
 
             // Try to find a material with the same color

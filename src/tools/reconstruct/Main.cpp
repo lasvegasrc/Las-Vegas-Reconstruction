@@ -146,6 +146,8 @@
 #include <lvr/reconstruction/FastReconstruction.hpp>
 #include <lvr/reconstruction/PointsetGrid.hpp>
 #include <lvr/reconstruction/FastBox.hpp>
+#include <lvr/reconstruction/SharpBox.hpp>
+#include <lvr/reconstruction/TetraederBox.hpp>
 
 #include <lvr/io/PLYIO.hpp>
 #include <lvr/config/lvropenmp.hpp>
@@ -156,7 +158,7 @@
 #include <lvr/texture/Texturizer.hpp>
 #include <lvr/texture/Statistics.hpp>
 #include <lvr/geometry/QuadricVertexCosts.hpp>
-#include <lvr/reconstruction/SharpBox.hpp>
+
 
 // PCL related includes
 #ifdef LVR_USE_PCL
@@ -317,7 +319,7 @@ int main(int argc, char** argv)
 			if(options.getNumCCVColors())
 			{
 				Texturizer<Vertex<float> , Normal<float> >::m_numCCVColors = options.getNumCCVColors();
-			}
+            }
 			if(options.getCoherenceThreshold())
 			{
 				Texturizer<Vertex<float> , Normal<float> >::m_coherenceThreshold = options.getCoherenceThreshold();
@@ -338,7 +340,7 @@ int main(int argc, char** argv)
 			if(options.getFeatureThreshold())
 			{
 				Texturizer<Vertex<float> , Normal<float> >::m_featureThreshold = options.getFeatureThreshold();
-			}
+            }
 			if(options.getPatternThreshold())
 			{
 				Texturizer<Vertex<float> , Normal<float> >::m_patternThreshold = options.getPatternThreshold();
@@ -380,7 +382,7 @@ int main(int argc, char** argv)
 		string decomposition = options.getDecomposition();
 
 		// Fail safe check
-		if(decomposition != "MC" && decomposition != "PMC" && decomposition != "SF" )
+        if(decomposition != "MT" && decomposition != "MC" && decomposition != "PMC" && decomposition != "SF" )
 		{
 			cout << "Unsupported decomposition type " << decomposition << ". Defaulting to PMC." << endl;
 			decomposition = "PMC";
@@ -413,6 +415,13 @@ int main(int argc, char** argv)
 			ps_grid->calcDistanceValues();
 			reconstruction = new FastReconstruction<ColorVertex<float, unsigned char> , Normal<float>, SharpBox<ColorVertex<float, unsigned char>, Normal<float> >  >(ps_grid);
 		}
+        else if(decomposition == "MT")
+        {
+            grid = new PointsetGrid<ColorVertex<float, unsigned char>, TetraederBox<ColorVertex<float, unsigned char>, Normal<float> > >(resolution, surface, surface->getBoundingBox(), useVoxelsize, options.extrude());
+            PointsetGrid<ColorVertex<float, unsigned char>, TetraederBox<ColorVertex<float, unsigned char>, Normal<float> > >* ps_grid = static_cast<PointsetGrid<ColorVertex<float, unsigned char>, TetraederBox<ColorVertex<float, unsigned char>, Normal<float> > > *>(grid);
+            ps_grid->calcDistanceValues();
+            reconstruction = new FastReconstruction<ColorVertex<float, unsigned char> , Normal<float>, TetraederBox<ColorVertex<float, unsigned char>, Normal<float> >  >(ps_grid);
+        }
 
 
 		

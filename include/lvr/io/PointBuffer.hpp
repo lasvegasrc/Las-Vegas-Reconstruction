@@ -42,9 +42,9 @@
 
 #include <vector>
 #include <algorithm>
-#include "DataStruct.hpp"
-
 #include <boost/shared_ptr.hpp>
+
+#include "DataStruct.hpp"
 
 namespace lvr
 {
@@ -84,7 +84,6 @@ public:
      * \param n      Amount of points in the array.
      **/
     void setPointArray( floatArr array, size_t n );
-
 
     /**
      * \brief Set the point color array.

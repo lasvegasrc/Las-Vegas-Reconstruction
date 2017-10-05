@@ -74,8 +74,9 @@ void AnimationDialog::connectEvents()
 
 void AnimationDialog::savePath()
 {
-    QString filename = QFileDialog::getSaveFileName(m_parent,
-            tr("Save Path"), "", tr("XML files (*.xml)"));
+    QString filename = QFileDialog::getSaveFileName(NULL,
+            tr("Save Path"), "./", tr("XML files (*.xml)"));
+  //  QString filename = QFileDialog::getSaveFileName();
 
     updateKfi(false);
 

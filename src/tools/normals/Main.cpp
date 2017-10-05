@@ -100,10 +100,10 @@ void interpolateNormals(PointBufferPtr pc, size_t numPoints, int n)
     ProgressBar progress(numPoints, comment);
 
     #pragma omp parallel for schedule(static)
-    for(int i = 0; i < numPoints; i++)
+    for(size_t i = 0; i < numPoints; i++)
     {
         // Create search tree
-        vector< int > indices;
+        vector< size_t > indices;
         vector< float > distances;
 
         Vertex<float> vertex(points[3 * i], points[3 * i + 1], points[3 * i + 2]);

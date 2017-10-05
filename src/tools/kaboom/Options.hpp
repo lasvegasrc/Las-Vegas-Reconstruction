@@ -37,12 +37,11 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
-
+using namespace boost::program_options;
 
 namespace kaboom
 {
 
-using namespace boost::program_options;
 
 /**
  * @brief A class to parse the program options for the reconstruction
@@ -65,6 +64,7 @@ public:
     string 	getOutputFile() const;
 
 	bool	filter() const;
+    bool    noColor() const;
     bool    transformBefore() const;
 	int		getK() const;
 	float	getSigma() const;
@@ -162,7 +162,7 @@ inline ostream& operator<<(ostream& os, const Options &o)
 	return os;
 }
 
-} // namespace reconstruct
+} // namespace kaboom
 
 
 #endif /* OPTIONS_H_ */

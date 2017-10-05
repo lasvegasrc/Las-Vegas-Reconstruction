@@ -25,7 +25,7 @@
 #ifndef LVRPOSEITEM_HPP_
 #define LVRPOSEITEM_HPP_
 
-#include <QtGui/qtreewidget.h>
+#include <QTreeWidget>
 
 #include "../vtkBridge/LVRModelBridge.hpp"
 
