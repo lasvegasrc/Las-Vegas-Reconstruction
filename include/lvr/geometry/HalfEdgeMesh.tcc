@@ -1543,16 +1543,17 @@ void HalfEdgeMesh<VertexT, NormalT>::finalize()
         index_map[*vertices_iter] = i;
     }
 
+
     string msg = timestamp.getElapsedTime() + "Calculating region sizes";
        ProgressBar progress(m_regions.size(), msg);
        for(size_t i = 0; i < m_regions.size(); i++)
        {
-           m_regions[i]->calcArea();
+           //m_regions[i]->calcArea();
            ++progress;
        }
        cout << endl;
 
-
+cout << "OK1" << endl;
     typename vector<FacePtr>::iterator face_iter = m_faces.begin();
     typename vector<FacePtr>::iterator face_end  = m_faces.end();
     for(size_t i = 0; face_iter != face_end; i++, ++face_iter)
@@ -1569,14 +1570,14 @@ void HalfEdgeMesh<VertexT, NormalT>::finalize()
             // get the faces surface class (region id)
             surface_class = (*face_iter)->m_region;
             // label the region if not already done
-            if (m_regionClassifier->generatesLabel())
+          /*  if (m_regionClassifier->generatesLabel())
             {
                 Region<VertexT, NormalT>* region = m_regions.at(surface_class);
                 if (!region->hasLabel())
                 {
                     region->setLabel(m_regionClassifier->getLabel(surface_class));
                 }
-            }
+            } */
 
             r = m_regionClassifier->r(surface_class);
             g = m_regionClassifier->g(surface_class);
@@ -1608,10 +1609,10 @@ void HalfEdgeMesh<VertexT, NormalT>::finalize()
     }
 
     // Label regions with Classifier
-    LabelRegions();
+    //LabelRegions();
 
 	// jetzt alle regions labeln, falls der classifier das kann
-    assignLBI();
+    //assignLBI();
 
     // Hand the buffers over to the Model class for IO operations.
     if ( !this->m_meshBuffer )
@@ -1619,15 +1620,15 @@ void HalfEdgeMesh<VertexT, NormalT>::finalize()
         this->m_meshBuffer = MeshBufferPtr( new MeshBuffer );
     }
     this->m_meshBuffer->setVertexArray( vertexBuffer, numVertices );
-    //this->m_meshBuffer->setVertexColorArray( colorBuffer, numVertices );
+    this->m_meshBuffer->setVertexColorArray( colorBuffer, numVertices );
     this->m_meshBuffer->setVertexNormalArray( normalBuffer, numVertices  );
     this->m_meshBuffer->setFaceArray( indexBuffer, numFaces );
-	this->m_meshBuffer->setLabeledFacesMap( labeledFaces );
+    //this->m_meshBuffer->setLabeledFacesMap( labeledFaces );
     //this->m_meshBuffer->setFaceColorArray( faceColorBuffer );
     this->m_finalized = true;
 
     // clean up
-    labeledFaces.clear();
+    // labeledFaces.clear();
 }
 
 
@@ -2040,8 +2041,8 @@ void HalfEdgeMesh<VertexT, NormalT>::finalizeAndRetesselate( bool genTextures, f
 
 
     // Label regions with Classifier
-    LabelRegions();
-    assignLBI();
+    // LabelRegions();
+    // assignLBI();
 
     if ( !this->m_meshBuffer )
     {
@@ -2063,7 +2064,7 @@ void HalfEdgeMesh<VertexT, NormalT>::finalizeAndRetesselate( bool genTextures, f
 
     // Clean up
     delete texturizer;
-    labeledFaces.clear();
+    //labeledFaces.clear();
     Tesselator<VertexT, NormalT>::clear();
 }
 
